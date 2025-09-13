@@ -1,0 +1,380 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"              // ใช้ DB อื่นปรับตรงนี้
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+/* ---------- หลัก: ผู้ใช้ / กลุ่ม / ทริป ---------- */
+
+model User {
+  id                 String            @id @default(uuid()) @db.Uuid @map("user_id")
+  fname              String
+  lname              String
+  birthDate          DateTime?         @db.Date @map("birth_date")
+  role               String?
+  email              String            @unique
+  password           String
+  profileImg         String?           @map("profile_img")
+  phone              String?
+  status             String?
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime?         @updatedAt     @map("updated_at")
+
+  // back-relations
+  ownedGroups        Group[]           @relation("GroupOwner")
+  memberOf           UserJoinGroup[]
+  services           UserService[]     @relation("ServiceOwner")
+  ownedTripPlans     TripPlan[]        @relation("TripPlanOwner")
+  discounts          Discount[]         @relation("DiscountOwner")
+  reviews            Review[]
+  bookmarks          Bookmark[]
+  discountsMade      Discount[]        @relation("DiscountMaker")
+  // hotels             Hotel[]
+  // guides             Guide[]
+  // carCenters         CarRentalCenter[]
+  // restaurants        Restaurant[]
+
+  @@map("User")
+}
+
+model Group {
+  id        String            @id  @map("group_id")
+  ownerId   String            @db.Uuid @map("owner_id")
+  owner     User             @relation("GroupOwner", fields: [ownerId], references: [id])
+  groupName String           @map("group_name")
+  groupImg  String?          @map("group_img")
+  status    String?
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime?        @updatedAt     @map("updated_at")
+  tripPlansId String?        @map("trip_plans_id")
+
+  // back-relations
+  members   UserJoinGroup[]
+  bookings  Booking[]
+  tripPlans TripPlan? @relation(fields: [tripPlansId], references: [id])
+
+  @@index([ownerId])
+  @@map("Group")
+}
+
+model UserJoinGroup {
+  groupId String @map("group_id")
+  userId  String @db.Uuid @map("user_id")
+  status  String?
+  joinDate DateTime @default(now()) @map("join_date")
+  
+
+  group   Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user    User  @relation(fields: [userId],  references: [id], onDelete: Cascade)
+
+  @@id([groupId, userId])
+  @@map("UserJoinGroup")
+}
+
+model TripPlan {
+  id         String        @id @map("trip_id")
+  ownerId    String     @db.Uuid   @map("owner_id")
+  createAt   DateTime   @default(now())               @map("create_at")
+  updateAt   DateTime?  @updatedAt                   @map("update_at")
+  deleteAt   DateTime?                                 @map("delete_at")
+  tripName   String     @map("trip_name")
+  tripImg    String?    @map("trip_img")
+  status     String?
+  note       String?
+  startDate  DateTime?  @db.Date                     @map("start_date")
+  endDate    DateTime?  @db.Date                     @map("end_date")
+
+  owner      User       @relation("TripPlanOwner", fields: [ownerId], references: [id])
+  units      TripUnit[]
+  groups     Group[]
+
+
+  @@index([ownerId])
+  @@map("TripPlan")
+}
+
+model TripUnit {
+  id             String       @id @map("unit_id")
+  tripId         String       @map("trip_id")
+  placeId        Int       @map("place_id")
+  timeStampStart DateTime  @map("time_stamp_start")
+  duration       Int?
+  status         String?
+  note           String?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime? @updatedAt     @map("updated_at")
+  deletedAt      DateTime?               @map("deleted_at")
+
+  trip   TripPlan @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  place  Place    @relation(fields: [placeId], references: [id])
+
+  @@index([tripId])
+  @@index([placeId])
+  @@map("TripUnit")
+}
+
+/* ---------- สถานที่ / พิกัด ---------- */
+
+model Place {
+  id          Int        @id @default(autoincrement()) @map("place_id")
+  locationId  Int?       @map("location_id")
+  name        String
+  description String?
+  placeImg    String?    @map("place_img")
+
+  location    Location?  @relation(fields: [locationId], references: [id])
+  tripUnits   TripUnit[]
+
+  @@index([locationId])
+  @@map("Place")
+}
+
+model Location {
+  id       Int       @id @default(autoincrement()) @map("location_id")
+  lat      Float
+  long     Float
+  name     String
+  detail   String?
+  status   String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt     @map("updated_at")
+  deletedAt DateTime?               @map("deleted_at")
+
+  country  String?
+  province String?
+  address  String?
+  district String?
+  street   String?
+  zipCode  String?   @map("zip_code")
+
+
+  servicesByLoc    UserService[]  @relation("ServiceLoc")
+
+  places   Place[]
+
+  @@map("Location")
+}
+
+/* ---------- กลุ่มบริการรวม / ประเภทบริการย่อย ---------- */
+
+model UserService {
+  id                String       @id @map("service_id")
+  ownerId           String    @db.Uuid   @map("owner_id")
+  locationId        Int?      @map("location_id")
+  name              String
+  description       String?
+  serviceImg        String?   @map("service_img")
+  status            String?
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime? @updatedAt     @map("updated_at")
+  deletedAt         DateTime?               @map("deleted_at")
+  type              String?
+  owner         User      @relation("ServiceOwner", fields: [ownerId], references: [id])
+  location      Location? @relation("ServiceLoc",      fields: [locationId],        references: [id])
+
+
+  // one-to-one กับบริการย่อย (shared PK)
+  hotel             Hotel?
+  guide             Guide?
+  carRentalCenter   CarRentalCenter?
+  restaurant        Restaurant?
+
+  // อ้างอิงจากตารางอื่น
+  reviews    Review[]
+  bookmarks  Bookmark[]
+  bookings   Booking[]
+
+  @@index([ownerId])
+  @@index([locationId])
+  @@map("UserService")
+}
+
+/* ---------- บริการย่อย + รายการย่อย ---------- */
+
+model Hotel {
+  id          String         @id @map("hotel_id")
+  name        String
+  description String?
+  facility    String?
+  rating      Decimal? @db.Decimal(2,1)
+  image      String?
+  // ownerId     String          @map("owner_id")
+  // shared primary key -> FK ไปยัง UserService.service_id
+  service     UserService  @relation(fields: [id], references: [id], onDelete: Cascade)
+  // owner       User         @relation(fields: [ownerId], references: [id])
+
+  rooms       Room[]
+
+  // @@index([ownerId])
+  @@map("Hotel")
+}
+
+model Room {
+  id             String     @id @map("room_id")
+  hotelId        String     @map("hotel_id")
+  pricePerNight  Decimal? @db.Decimal(10,2) @map("price_per_night")
+  bedType        String?  @map("bed_type")
+  personPerRoom  Int?     @map("person_per_room")
+  description    String?
+  image          String?
+
+  hotel  Hotel @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  @@index([hotelId])
+  @@map("Room")
+}
+
+model Guide {
+  id          String        @id @map("guide_id")
+  name        String
+  description String?
+  image      String?
+  rating      Decimal? @db.Decimal(2,1)
+  service     UserService @relation(fields: [id],     references: [id], onDelete: Cascade)
+  @@map("Guide")
+}
+
+model CarRentalCenter {
+  id          String        @id @map("crc_id")
+  name        String
+  description String?
+  image      String?
+  rating      Decimal? @db.Decimal(2,1)
+
+  service     UserService @relation(fields: [id],     references: [id], onDelete: Cascade)
+  cars        Car[]
+
+
+  @@map("CarRentalCenter")
+}
+
+model Car {
+  id           String     @id @map("car_id")
+  crcId        String    @map("crc_id")
+  pricePerDay  Decimal? @db.Decimal(10,2) @map("price_per_day")
+  model        String?
+  description  String?
+  carseat      Int?
+  image        String?
+  status       String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime? @updatedAt     @map("updated_at")
+  deletedAt    DateTime?               @map("deleted_at")
+
+  center CarRentalCenter @relation(fields: [crcId], references: [id], onDelete: Cascade)
+
+  @@index([crcId])
+  @@map("Car")
+}
+
+model Restaurant {
+  id          String         @id @map("restaurant_id")
+  name        String
+  description String?
+  menu       String?    @map("menu")
+  image      String?
+  rating      Decimal? @db.Decimal(2,1)
+  service     UserService @relation(fields: [id],     references: [id], onDelete: Cascade)
+  tables      Table[]
+
+
+  @@map("Restaurant")
+}
+
+model Table {
+  id           String      @id @map("table_id")
+  restaurantId String     @map("restaurant_id")
+  model        String?
+  description  String?
+  seat         Int?
+  pricePerSeat Decimal? @db.Decimal(10,2) @map("price_per_seat")
+  status       String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime? @updatedAt     @map("updated_at")
+  deletedAt    DateTime?               @map("deleted_at")
+
+
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+  @@map("Table")
+}
+
+/* ---------- Review / Bookmark / Booking / Discount ---------- */
+
+model Review {
+  id        String         @id @map("review_id")
+  serviceId String         @map("service_id")
+  userId    String         @db.Uuid @map("user_id")
+  comment   String?
+  score     Int?
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime?   @updatedAt     @map("updated_at")
+  status    String?
+  image       String?
+
+
+  service   UserService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId],    references: [id], onDelete: Cascade)
+
+  @@index([serviceId])
+  @@index([userId])
+  @@map("Review")
+}
+
+model Bookmark {
+  id        String         @id @map("bookmark_id")
+  serviceId String         @map("service_id")
+  userId    String      @db.Uuid  @map("user_id")
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime?   @updatedAt     @map("updated_at")
+  status    String?
+
+  service   UserService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId],    references: [id], onDelete: Cascade)
+
+  @@index([serviceId])
+  @@index([userId])
+  @@map("Bookmark")
+}
+
+model Booking {
+  id               String         @id @map("booking_id")
+  serviceId        String        @map("service_id")
+  groupId          String        @map("group_id")
+  startBookingDate DateTime    @map("start_booking_date")
+  endBookingDate   DateTime?   @map("end_booking_date")
+  note             String?
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime?   @updatedAt     @map("updated_at")
+  
+  status           String?
+
+  service  UserService @relation(fields: [serviceId], references: [id])
+  group    Group       @relation(fields: [groupId],   references: [id])
+
+  @@index([serviceId])
+  @@index([groupId])
+  @@map("Booking")
+}
+
+model Discount {
+  id       String      @id @map("discount_id")
+  ownerId  String   @db.Uuid   @map("owner_id")
+  value    Decimal? @db.Decimal(10,2)
+  type     String?
+  status   String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  expiredAt DateTime?               @map("expired_at")
+  maker_id String?   @db.Uuid @map("maker_id")
+
+  owner    User     @relation("DiscountOwner", fields: [ownerId], references: [id])
+  maker   User?    @relation("DiscountMaker", fields: [maker_id], references: [id])
+  @@index([ownerId])
+  @@map("Discount")
+}
