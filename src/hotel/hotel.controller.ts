@@ -3,7 +3,7 @@ import { HotelService } from './hotel.service';
 import { CreateHotelDto } from './dto/create-hotel.dto';
 import { UpdateHotelDto } from './dto/update-hotel.dto';
 
-@Controller('hotel')
+@Controller('hotels')
 export class HotelController {
   constructor(private readonly hotelService: HotelService) {}
 
@@ -19,16 +19,16 @@ export class HotelController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.hotelService.findOne(+id);
+    return this.hotelService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateHotelDto: UpdateHotelDto) {
-    return this.hotelService.update(+id, updateHotelDto);
+    return this.hotelService.update(id, updateHotelDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.hotelService.remove(+id);
+    return this.hotelService.remove(id);
   }
 }
