@@ -1,4 +1,11 @@
-export class CreateHotelDto {}
+export class CreateHotelDto {
+    id: string;
+    name: string
+    description?: string;
+    facility?: string;
+    rating?: number;
+    image?: string;
+}
 
 // model Hotel {
 //   id          String         @id @map("hotel_id")

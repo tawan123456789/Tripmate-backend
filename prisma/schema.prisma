@@ -198,7 +198,7 @@ model Hotel {
   description String?
   facility    String?
   rating      Decimal? @db.Decimal(2,1)
-  image      String?
+  image       String?
   service     UserService  @relation(fields: [id], references: [id], onDelete: Cascade)
 
   rooms       Room[]
