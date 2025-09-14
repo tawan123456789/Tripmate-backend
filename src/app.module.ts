@@ -8,6 +8,8 @@ import { AppService } from './app.service';
 import { LocationsModule } from './locations/location.module';
 import { UserServicesModule } from './user-services/user-services.module';
 import { HotelModule } from './hotel/hotel.module';
+import { GuideModule } from './guide/guide.module';
+import { RoomModule } from './room/room.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { HotelModule } from './hotel/hotel.module';
     LocationsModule,
     UserServicesModule,
     HotelModule,
+    GuideModule,
+    RoomModule,
   ],
   controllers: [AppController],
   providers: [AppService],

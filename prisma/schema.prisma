@@ -206,8 +206,8 @@ model Hotel {
 }
 
 model Room {
-  id             String     @id @map("room_id")
-  hotelId        String     @map("hotel_id")
+  id             String   @map("room_id")
+  hotelId        String   @map("hotel_id")
   pricePerNight  Decimal? @db.Decimal(10,2) @map("price_per_night")
   bedType        String?  @map("bed_type")
   personPerRoom  Int?     @map("person_per_room")
@@ -217,6 +217,7 @@ model Room {
   hotel  Hotel @relation(fields: [hotelId], references: [id], onDelete: Cascade)
 
   @@index([hotelId])
+  @@id([id, hotelId])
   @@map("Room")
 }
 
