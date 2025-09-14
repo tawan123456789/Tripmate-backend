@@ -6,6 +6,8 @@ import { UsersModule } from './users/users.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LocationsModule } from './locations/location.module';
+import { UserServicesModule } from './user-services/user-services.module';
+import { HotelModule } from './hotel/hotel.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { LocationsModule } from './locations/location.module';
     PrismaModule, 
     UsersModule,
     LocationsModule,
+    UserServicesModule,
+    HotelModule,
   ],
   controllers: [AppController],
   providers: [AppService],
