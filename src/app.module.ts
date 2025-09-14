@@ -9,6 +9,7 @@ import { LocationsModule } from './locations/location.module';
 import { UserServicesModule } from './user-services/user-services.module';
 import { HotelModule } from './hotel/hotel.module';
 import { GuideModule } from './guide/guide.module';
+import { RoomModule } from './room/room.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { GuideModule } from './guide/guide.module';
     UserServicesModule,
     HotelModule,
     GuideModule,
+    RoomModule,
   ],
   controllers: [AppController],
   providers: [AppService],
