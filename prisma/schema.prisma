@@ -176,14 +176,11 @@ model UserService {
   owner         User      @relation("ServiceOwner", fields: [ownerId], references: [id])
   location      Location? @relation("ServiceLoc",      fields: [locationId],        references: [id])
 
-
-  // one-to-one กับบริการย่อย (shared PK)
   hotel             Hotel?
   guide             Guide?
   carRentalCenter   CarRentalCenter?
   restaurant        Restaurant?
 
-  // อ้างอิงจากตารางอื่น
   reviews    Review[]
   bookmarks  Bookmark[]
   bookings   Booking[]
@@ -202,14 +199,9 @@ model Hotel {
   facility    String?
   rating      Decimal? @db.Decimal(2,1)
   image      String?
-  // ownerId     String          @map("owner_id")
-  // shared primary key -> FK ไปยัง UserService.service_id
   service     UserService  @relation(fields: [id], references: [id], onDelete: Cascade)
-  // owner       User         @relation(fields: [ownerId], references: [id])
 
   rooms       Room[]
-
-  // @@index([ownerId])
   @@map("Hotel")
 }
 
