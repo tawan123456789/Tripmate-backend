@@ -25,7 +25,10 @@ export class UsersService {
       });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
-        throw new ConflictException('email ถูกใช้งานแล้ว');
+        throw new ConflictException('user email already exists');
+      }
+      else if( e instanceof Prisma.PrismaClientKnownRequestError ) {
+        console.log(e);
       }
       throw e;
     }

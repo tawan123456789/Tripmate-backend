@@ -1,0 +1,18 @@
+import { IsEmail, IsOptional, IsString, IsDateString, MinLength } from 'class-validator';
+
+export class CreateUserDto {
+  @IsString() fname: string;
+  @IsString() lname: string;
+
+  @IsOptional() @IsDateString() birthDate?: string; // ส่งเป็น ISO string
+
+  @IsOptional() @IsString() role?: string;
+
+  @IsEmail() email: string;
+
+  @IsString() @MinLength(6) password: string;
+
+  @IsOptional() @IsString() profileImg?: string;
+  @IsOptional() @IsString() phone?: string;
+  @IsOptional() @IsString() status?: string;
+}
