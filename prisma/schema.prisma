@@ -100,7 +100,7 @@ model TripPlan {
 model TripUnit {
   id             String       @id @map("unit_id")
   tripId         String       @map("trip_id")
-  placeId        Int       @map("place_id")
+  placeId        String      @map("place_id")
   timeStampStart DateTime  @map("time_stamp_start")
   duration       Int?
   status         String?
@@ -120,8 +120,8 @@ model TripUnit {
 /* ---------- สถานที่ / พิกัด ---------- */
 
 model Place {
-  id          Int        @id @default(autoincrement()) @map("place_id")
-  locationId  Int?       @map("location_id")
+  id          String       @id @map("place_id")
+  locationId  String?       @map("location_id")
   name        String
   description String?
   placeImg    String?    @map("place_img")
@@ -134,7 +134,7 @@ model Place {
 }
 
 model Location {
-  id       Int       @id @default(autoincrement()) @map("location_id")
+  id       String       @id @map("location_id")
   lat      Float
   long     Float
   name     String
@@ -164,7 +164,7 @@ model Location {
 model UserService {
   id                String       @id @map("service_id")
   ownerId           String    @db.Uuid   @map("owner_id")
-  locationId        Int?      @map("location_id")
+  locationId        String?      @map("location_id")
   name              String
   description       String?
   serviceImg        String?   @map("service_img")
