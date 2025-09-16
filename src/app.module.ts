@@ -10,6 +10,8 @@ import { UserServicesModule } from './user-services/user-services.module';
 import { HotelModule } from './hotel/hotel.module';
 import { GuideModule } from './guide/guide.module';
 import { RoomModule } from './room/room.module';
+import { CarRentalCenterModule } from './car_rental_center/car_rental_center.module';
+import { CarModule } from './car/car.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { RoomModule } from './room/room.module';
     HotelModule,
     GuideModule,
     RoomModule,
+    CarRentalCenterModule,
+    CarModule,
   ],
   controllers: [AppController],
   providers: [AppService],
