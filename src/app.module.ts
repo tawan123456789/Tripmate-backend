@@ -12,6 +12,8 @@ import { GuideModule } from './guide/guide.module';
 import { RoomModule } from './room/room.module';
 import { CarRentalCenterModule } from './car_rental_center/car_rental_center.module';
 import { CarModule } from './car/car.module';
+import { RestaurantModule } from './restaurant/restaurant.module';
+import { TableModule } from './table/table.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { CarModule } from './car/car.module';
     RoomModule,
     CarRentalCenterModule,
     CarModule,
+    RestaurantModule,
+    TableModule,
   ],
   controllers: [AppController],
   providers: [AppService],
