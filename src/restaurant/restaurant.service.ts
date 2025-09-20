@@ -42,7 +42,7 @@ async findOne(id: string) {
     }
   
     async update(id: string, dto: UpdateRestaurantDto) {
-      const existing = await this.prisma.hotel.findUnique({ where: { id } });
+      const existing = await this.prisma.restaurant.findUnique({ where: { id } });
           if (!existing) {
               throw new NotFoundException('Location not found');
           }

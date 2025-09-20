@@ -14,6 +14,7 @@ import { CarRentalCenterModule } from './car_rental_center/car_rental_center.mod
 import { CarModule } from './car/car.module';
 import { RestaurantModule } from './restaurant/restaurant.module';
 import { TableModule } from './table/table.module';
+import { ReviewModule } from './review/review.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { TableModule } from './table/table.module';
     CarModule,
     RestaurantModule,
     TableModule,
+    ReviewModule,
   ],
   controllers: [AppController],
   providers: [AppService],

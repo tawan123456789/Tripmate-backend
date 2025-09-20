@@ -17,18 +17,18 @@ export class TableController {
     return this.tableService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tableService.findOne(+id);
+  @Get(':id/:restaurantId')
+  findOne(@Param('id') id:string, @Param('restaurantId') restaurantId:string) {
+    return this.tableService.findOne(id,restaurantId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTableDto: UpdateTableDto) {
-    return this.tableService.update(+id, updateTableDto);
+  @Patch(':id/:restaurantId')
+  update(@Param('id') id: string, @Param('restaurantId') restaurantId:string, @Body() updateTableDto: UpdateTableDto) {
+    return this.tableService.update(id,restaurantId, updateTableDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tableService.remove(+id);
+  @Delete(':id/:restaurantId')
+  remove(@Param('id') id: string, @Param('restaurantId') restaurantId:string) {
+    return this.tableService.remove(id,restaurantId);
   }
 }
