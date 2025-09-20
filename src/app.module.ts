@@ -15,6 +15,7 @@ import { CarModule } from './car/car.module';
 import { RestaurantModule } from './restaurant/restaurant.module';
 import { TableModule } from './table/table.module';
 import { ReviewModule } from './review/review.module';
+import { BookmarkModule } from './bookmark/bookmark.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ReviewModule } from './review/review.module';
     RestaurantModule,
     TableModule,
     ReviewModule,
+    BookmarkModule,
   ],
   controllers: [AppController],
   providers: [AppService],
