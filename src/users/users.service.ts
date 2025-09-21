@@ -100,4 +100,9 @@ export class UsersService {
       throw e;
     }
   }
+
+  async findByUsername(username: string) {
+    const user = await this.prisma.user.findUnique({ where: { email: username } });
+    return user;
+  }
 }

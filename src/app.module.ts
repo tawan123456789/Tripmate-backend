@@ -17,6 +17,7 @@ import { TableModule } from './table/table.module';
 import { ReviewModule } from './review/review.module';
 import { BookmarkModule } from './bookmark/bookmark.module';
 import { DiscountModule } from './discount/discount.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { DiscountModule } from './discount/discount.module';
     ReviewModule,
     BookmarkModule,
     DiscountModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
