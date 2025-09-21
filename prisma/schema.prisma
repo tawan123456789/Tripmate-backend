@@ -265,7 +265,7 @@ model Car {
 }
 
 model Restaurant {
-  id          String         @id @map("restaurant_id")
+  id          String    @id @map("restaurant_id")
   name        String
   description String?
   menu       String?    @map("menu")
@@ -279,7 +279,7 @@ model Restaurant {
 }
 
 model Table {
-  id           String      @id @map("table_id")
+  id           String     @map("table_id")
   restaurantId String     @map("restaurant_id")
   model        String?
   description  String?
@@ -295,6 +295,7 @@ model Table {
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
   @@index([restaurantId])
+  @@id([id, restaurantId])
   @@map("Table")
 }
 
