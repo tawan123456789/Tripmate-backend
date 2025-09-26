@@ -19,6 +19,7 @@ import { BookmarkModule } from './bookmark/bookmark.module';
 import { DiscountModule } from './discount/discount.module';
 import { AuthModule } from './auth/auth.module';
 import { GroupModule } from './group/group.module';
+import { UserJoinGroupModule } from './user_join_group/user_join_group.module';
 
 @Module({
   imports: [
@@ -44,6 +45,8 @@ import { GroupModule } from './group/group.module';
     DiscountModule,
     AuthModule,
     GroupModule,
+    UserJoinGroupModule,
+    
   ],
   controllers: [AppController],
   providers: [AppService],
