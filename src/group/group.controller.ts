@@ -17,6 +17,19 @@ export class GroupController {
     return this.groupService.findAll();
   }
 
+  @Post('/:groupId/join')
+  joinGroup(@Body() body: { userId: string}, @Param('groupId') groupId: string) {
+    const { userId} = body;
+
+    return this.groupService.joinGroup(userId, groupId);
+  }
+  @Delete('/:groupId/leave')
+  leaveGroup(@Body() body: { userId: string}, @Param('groupId') groupId: string) {
+    const { userId} = body;
+
+    return this.groupService.leaveGroup(userId, groupId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.groupService.findOne(id);

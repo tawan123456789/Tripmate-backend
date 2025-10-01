@@ -1,5 +1,4 @@
 export class CreateGroupDto {
-    id: string;
     ownerId: string
     groupName: string;
     groupImg?: string

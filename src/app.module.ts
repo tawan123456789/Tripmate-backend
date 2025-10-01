@@ -19,6 +19,7 @@ import { BookmarkModule } from './bookmark/bookmark.module';
 import { DiscountModule } from './discount/discount.module';
 import { AuthModule } from './auth/auth.module';
 import { GroupModule } from './group/group.module';
+import { TripModule } from './trip/trip.module';
 import { UserJoinGroupModule } from './user_join_group/user_join_group.module';
 import { TripPlanModule } from './trip_plan/trip_plan.module';
 import { PlanUnitModule } from './plan_unit/plan_unit.module';
@@ -47,6 +48,7 @@ import { PlanUnitModule } from './plan_unit/plan_unit.module';
     DiscountModule,
     AuthModule,
     GroupModule,
+    TripModule,
     UserJoinGroupModule,
     TripPlanModule,
     PlanUnitModule,

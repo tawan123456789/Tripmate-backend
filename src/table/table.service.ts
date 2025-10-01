@@ -49,12 +49,12 @@ export class TableService {
 
   
     async update(id: string, restaurantId: string, dto: UpdateTableDto) {
-      const existing = await this.prisma.table.findUnique({ where: {id_restaurantId: { id, restaurantId },} });
+      const existing = await this.prisma.table.findUnique({ where: { id_restaurantId: { id, restaurantId } } });
           if (!existing) {
               throw new NotFoundException('Location not found');
           }
           return this.prisma.table.update({
-              where: {id_restaurantId: { id, restaurantId },},
+              where: { id_restaurantId: { id, restaurantId } },
               data: {
                 id: dto.id,
                 restaurantId: dto.restaurantId,
@@ -68,7 +68,7 @@ export class TableService {
   
     async remove(id: string, restaurantId: string,) {
       try {
-          await this.prisma.table.delete({ where: {id_restaurantId: { id, restaurantId },} });
+          await this.prisma.table.delete({ where: { id_restaurantId: { id, restaurantId } } });
           return { ok: true };
       } catch (e) {
           if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
