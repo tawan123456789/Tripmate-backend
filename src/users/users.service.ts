@@ -1,12 +1,17 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { MinioService } from '../minio/minio.service';
 import { CreateUserDto, ProfileUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private minioService: MinioService,
+  ) {}
 
   async create(dto: CreateUserDto) {
     try {
@@ -81,13 +86,20 @@ export class UsersService {
     return userProfile;
   }
 
-  async update(id: string, dto: UpdateUserDto) {
+  async update(id: string, dto: UpdateUserDto, profileImg?: Express.Multer.File) {
     try {
+      let profileImgUrl = dto.profileImg;
+      if (profileImg) {
+        const fileName = `${uuidv4()}${profileImg.originalname.substring(profileImg.originalname.lastIndexOf('.'))}`;
+        const url = await this.minioService.uploadAvatar(profileImg.buffer, fileName, profileImg.mimetype);
+        profileImgUrl = url;
+      }
       return await this.prisma.user.update({
         where: { id },
         data: {
           ...dto,
           birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
+          profileImg: profileImgUrl,
         },
       });
     } catch (e) {
