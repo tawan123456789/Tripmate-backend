@@ -1,9 +1,9 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, ProfileUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
@@ -14,6 +14,8 @@ export class UsersService {
         data: {
           fname: dto.fname,
           lname: dto.lname,
+          username: dto.username,
+          gender: dto.gender,
           birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
           role: dto.role,
           email: dto.email,
@@ -66,7 +68,17 @@ export class UsersService {
   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('user not found');
-    return user;
+    const userProfile: ProfileUserDto = {
+      fname: user.fname,
+      lname: user.lname,
+      birthDate: user.birthDate ? user.birthDate.toISOString() : undefined,
+      phone: user.phone ? user.phone : undefined,
+      email: user.email,
+      gender: user.gender,
+      profileImg: user.profileImg ? user.profileImg : undefined,  
+    };
+
+    return userProfile;
   }
 
   async update(id: string, dto: UpdateUserDto) {
@@ -105,4 +117,20 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({ where: { email: username } });
     return user;
   }
+
+  async changePassword(id: string, dto: { oldPassword: string; newPassword: string }) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('user not found');
+    const isMatch = await bcrypt.compare(dto.oldPassword, user.password);
+    if (!isMatch) {
+      throw new NotFoundException('old password is incorrect');
+    }
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(dto.newPassword, salt);
+
+    return this.prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword },
+     });
+    }
 }
