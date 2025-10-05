@@ -85,9 +85,14 @@ export class GroupService {
     }
 
     async findOne(id: string) {
-        const location = await this.prisma.group.findUnique({ where: { id } });
-        if (!location) throw new NotFoundException('Discount not found');
-        return location;
+        const group = await this.prisma.group.findUnique({
+            where: { id },
+            include: {
+                members: true,
+            },
+        });
+        if (!group) throw new NotFoundException('Group not found');
+        return group;
     }
 
     async update(id: string, dto: UpdateGroupDto) {
