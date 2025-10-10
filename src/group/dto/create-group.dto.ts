@@ -2,8 +2,10 @@ export class CreateGroupDto {
     ownerId: string
     groupName: string;
     groupImg?: string
+    description?: string
     status?: string
 }
+
 
 // model Group {
 //   id        String            @id  @map("group_id")

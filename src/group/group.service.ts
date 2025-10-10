@@ -5,17 +5,25 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { ConflictException } from '@nestjs/common/exceptions';
 import { NotFoundException } from '@nestjs/common';
-
+import { MinioService } from '../minio/minio.service';
 import { randomNumber, randomString, randomAlphanumeric } from '../utils/random.util';
-
+import { v4 as uuidv4 } from 'uuid';
 const randomId = randomString(8);
 const randomCode = randomAlphanumeric(6); 
 
 @Injectable()
 export class GroupService {
-    constructor(private prisma: PrismaService) { }
+    constructor(private prisma: PrismaService,
+    private readonly minioService: MinioService
+    ) {}
 
-    async create(dto: CreateGroupDto) {
+    async create(dto: CreateGroupDto, profileImg?: Express.Multer.File) {
+        if (profileImg) {
+            const filename = `${uuidv4()}${profileImg.originalname.substring(profileImg.originalname.lastIndexOf('.'))}`;
+            const url = await this.minioService.uploadImage(profileImg.buffer, filename, profileImg.mimetype);
+            dto.groupImg = url;
+        }
+
         try {
             const group =  await this.prisma.group.create({
                 data: {
@@ -24,6 +32,7 @@ export class GroupService {
                     groupName: dto.groupName,
                     groupImg: dto.groupImg,
                     status: dto.status,
+                    description: dto.description,
                 },
             }); 
              await this.prisma.userJoinGroup.create({
@@ -39,6 +48,9 @@ export class GroupService {
         } catch (e) {
             if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
                 throw new ConflictException('group ID ถูกใช้งานแล้ว');
+            }
+            else if (e instanceof Prisma.PrismaClientKnownRequestError) {
+                throw e;
             }
         }
     }
@@ -82,6 +94,29 @@ export class GroupService {
 
     findAll() {
         return `This action returns all group`;
+    }
+
+    async shearchGroup(text: string) {
+        const groups = await this.prisma.group.findMany({
+            where: {
+                OR: [
+                    { groupName: { contains: text, mode: 'insensitive' } },
+                    { id: { contains: text, mode: 'insensitive' } },
+                ],
+            },
+            select: {
+                id: true,
+                groupName: true,
+                description: true,
+                owner: {
+                    select: {
+                            username: true,
+                    },
+                },
+            },
+        });
+        if (!groups) throw new NotFoundException('Group not found');
+        return groups;
     }
 
     async findOne(id: string) {

@@ -53,6 +53,8 @@ model Group {
   createdAt DateTime         @default(now()) @map("created_at")
   updatedAt DateTime?        @updatedAt     @map("updated_at")
   tripPlansId String?        @map("trip_plans_id")
+  description String?        @map("description")@default("No description")
+  profileImg         String?           @map("profile_img")
 
   // back-relations
   members   UserJoinGroup[]
