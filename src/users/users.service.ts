@@ -1,12 +1,17 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { MinioService } from '../minio/minio.service';
+import { CreateUserDto, ProfileUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private minioService: MinioService,
+  ) {}
 
   async create(dto: CreateUserDto) {
     try {
@@ -14,6 +19,8 @@ export class UsersService {
         data: {
           fname: dto.fname,
           lname: dto.lname,
+          username: dto.username,
+          gender: dto.gender,
           birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
           role: dto.role,
           email: dto.email,
@@ -66,16 +73,33 @@ export class UsersService {
   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('user not found');
-    return user;
+    const userProfile: ProfileUserDto = {
+      fname: user.fname,
+      lname: user.lname,
+      birthDate: user.birthDate ? user.birthDate.toISOString() : undefined,
+      phone: user.phone ? user.phone : undefined,
+      email: user.email,
+      gender: user.gender,
+      profileImg: user.profileImg ? user.profileImg : undefined,  
+    };
+
+    return userProfile;
   }
 
-  async update(id: string, dto: UpdateUserDto) {
+  async update(id: string, dto: UpdateUserDto, profileImg?: Express.Multer.File) {
     try {
+      let profileImgUrl = dto.profileImg;
+      if (profileImg) {
+        const fileName = `${uuidv4()}${profileImg.originalname.substring(profileImg.originalname.lastIndexOf('.'))}`;
+        const url = await this.minioService.uploadAvatar(profileImg.buffer, fileName, profileImg.mimetype);
+        profileImgUrl = url;
+      }
       return await this.prisma.user.update({
         where: { id },
         data: {
           ...dto,
           birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
+          profileImg: profileImgUrl,
         },
       });
     } catch (e) {
@@ -105,4 +129,20 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({ where: { email: username } });
     return user;
   }
+
+  async changePassword(id: string, dto: { oldPassword: string; newPassword: string }) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('user not found');
+    const isMatch = await bcrypt.compare(dto.oldPassword, user.password);
+    if (!isMatch) {
+      throw new NotFoundException('old password is incorrect');
+    }
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(dto.newPassword, salt);
+
+    return this.prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword },
+     });
+    }
 }
