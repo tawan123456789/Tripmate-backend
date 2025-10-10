@@ -1,18 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete , UseInterceptors, UploadedFile } from '@nestjs/common';
 import { GroupService } from './group.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
-
+import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('group')
 export class GroupController {
   constructor(private readonly groupService: GroupService) {}
 
   @Post()
-  create(@Body() createGroupDto: CreateGroupDto) {
-    return this.groupService.create(createGroupDto);
+  @UseInterceptors(FileInterceptor('groupImg'))
+  create(@Body() createGroupDto: CreateGroupDto,
+    @UploadedFile() profileImg?: Express.Multer.File){
+    return this.groupService.create(createGroupDto, profileImg);
   }
 
-  @Get()
+  @Get()             
   findAll() {
     return this.groupService.findAll();
   }
@@ -29,6 +31,13 @@ export class GroupController {
 
     return this.groupService.leaveGroup(userId, groupId);
   }
+
+
+  @Get('/shearch/:text')
+  shearchGroup(@Param('text') text: string) {
+    return this.groupService.shearchGroup(text);
+  }
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {
