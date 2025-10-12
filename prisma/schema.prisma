@@ -12,6 +12,8 @@ generator client {
 
 model User {
   id                 String            @id @default(uuid()) @db.Uuid @map("user_id")
+  username           String            @unique@default("default_username") 
+  gender             String            @default("Other")       
   fname              String
   lname              String
   birthDate          DateTime?         @db.Date @map("birth_date")
@@ -51,6 +53,8 @@ model Group {
   createdAt DateTime         @default(now()) @map("created_at")
   updatedAt DateTime?        @updatedAt     @map("updated_at")
   tripPlansId String?        @map("trip_plans_id")
+  description String?        @map("description")@default("No description")
+  profileImg         String?           @map("profile_img")
 
   // back-relations
   members   UserJoinGroup[]
