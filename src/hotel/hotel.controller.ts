@@ -22,10 +22,10 @@ export class HotelController {
     return this.hotelService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateHotelDto: UpdateHotelDto) {
-    return this.hotelService.update(id, updateHotelDto);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateHotelDto: UpdateHotelDto) {
+  //   return this.hotelService.update(id, updateHotelDto);
+  // }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
