@@ -196,29 +196,48 @@ model UserService {
 
 /* ---------- บริการย่อย + รายการย่อย ---------- */
 
-model Hotel {
-  id          String         @id @map("hotel_id")
-  name        String
-  description String?
-  facility    String?
-  rating      Decimal? @db.Decimal(2,1)
-  image       String?
-  service     UserService  @relation(fields: [id], references: [id], onDelete: Cascade)
+// ========= ADD/UPDATE: Hotel =========
 
-  rooms       Room[]
+model Hotel {
+  id                String      @id @map("hotel_id")
+  name              String
+  type              String?                       // "hotel" | "resort" | ...
+  star              Int?                          // 1..5 (rating แบบดาว ไม่ใช่รีวิว)
+  description       String?
+  image             String?                       // cover (compat เดิม)
+  pictures          String[]     @default([])   // ถูก: TEXT[] พร้อมค่าเริ่มต้น []      // ~5-10 รูป
+  facility          String?                       // compat เดิม: ;wifi;pool;...
+  facilities        Json?                         // โครง object แยกหมวด (ดูตัวอย่างด้านล่าง)
+  rating            Decimal?       @db.Decimal(3,1)  // 0..10 ทศนิยม
+  checkIn    String?
+  checkOut   String?
+  breakfast  String?       // ข้อมูลนโยบายอาหารเช้า (เช่น เวลา/มีหรือไม่)
+  petAllow   Boolean? @map("pet_allow")
+  contact    String?
+  subtopicRatings   Json?          @map("subtopic_ratings") // {cleanliness, comfort, meal, ...}
+  locationSummary   String?        @map("location_text")   
+  nearbyLocations   String[]     @default([]) @map("nearby_locations") // ["Place A - 0.5 km", "Place B - 1 km"]
+  service           UserService @relation(fields: [id], references: [id], onDelete: Cascade)
+  // ความสัมพันธ์ย่อย
+  rooms             Room[]
+
   @@map("Hotel")
 }
 
 model Room {
   id             String   @map("room_id")
   hotelId        String   @map("hotel_id")
-  pricePerNight  Decimal? @db.Decimal(10,2) @map("price_per_night")
-  bedType        String?  @map("bed_type")
-  personPerRoom  Int?     @map("person_per_room")
+  name           String?                  // ชื่่อห้อง
+  pictures          String[]     @default([])   // ถูก: TEXT[] พร้อมค่าเริ่มต้น []    // รูปห้อง ~1-5
   description    String?
-  image          String?
-
-  hotel  Hotel @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  image          String?                  // compat เดิม
+  bedType        String?   @map("bed_type")
+  personPerRoom  Int?      @map("person_per_room")
+  sizeSqm        Int?      @map("size_sqm")       // ขนาดห้อง (ตร.ม.)
+  facilities     String[]  @default([])      @map("facilities")
+  pricePerNight  Decimal?  @db.Decimal(10,2) @map("price_per_night")
+  // ความสัมพันธ์
+  hotel     Hotel       @relation(fields: [hotelId], references: [id], onDelete: Cascade)
 
   @@index([hotelId])
   @@id([id, hotelId])

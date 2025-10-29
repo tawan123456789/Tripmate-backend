@@ -12,13 +12,17 @@ export class RoomService {
         try {
           return await this.prisma.room.create({
             data: {
-              id: dto.id,
+              id: crypto.randomUUID(), // หรือให้มาจากที่อื่น
               hotelId: dto.hotelId,
-              pricePerNight: dto.pricePerNight,
-              bedType: dto.bedType,
-              personPerRoom: dto.personPerRoom,
+              name: dto.name,
+              pictures: dto.pictures,
               description: dto.description,
               image: dto.image,
+              bedType: dto.bedType,
+              personPerRoom: dto.personPerRoom,
+              sizeSqm: dto.sizeSqm,
+              facilities: dto.facilities,
+              pricePerNight: dto.pricePerNight != null ? new Prisma.Decimal(dto.pricePerNight) : null,
             },
           });
         } catch (e) {
@@ -43,24 +47,24 @@ export class RoomService {
     }
   
 
-  async update(id: string, hotel_id: string, dto: UpdateRoomDto) {
-    const existing = await this.prisma.room.findUnique({ where: { id_hotelId: {id: id ,hotelId: hotel_id} } });
-        if (!existing) {
-            throw new NotFoundException('Room not found');
-        }
-        return this.prisma.room.update({
-            where: { id_hotelId: {id: id ,hotelId: hotel_id} },
-            data: {
-              id: dto.id,
-              hotelId: dto.hotelId,
-              pricePerNight: dto.pricePerNight,
-              bedType: dto.bedType,
-              personPerRoom: dto.personPerRoom,
-              description: dto.description,
-              image: dto.image,
-          },
-        });
-    }
+  // async update(id: string, hotel_id: string, dto: UpdateRoomDto) {
+  //   const existing = await this.prisma.room.findUnique({ where: { id_hotelId: {id: id ,hotelId: hotel_id} } });
+  //       if (!existing) {
+  //           throw new NotFoundException('Room not found');
+  //       }
+  //       return this.prisma.room.update({
+  //           where: { id_hotelId: {id: id ,hotelId: hotel_id} },
+  //           data: {
+  //             id: dto.id,
+  //             hotelId: dto.hotelId,
+  //             pricePerNight: dto.pricePerNight,
+  //             bedType: dto.bedType,
+  //             personPerRoom: dto.personPerRoom,
+  //             description: dto.description,
+  //             image: dto.image,
+  //         },
+  //       });
+  //   }
   
     async remove(id: string, hotel_id: string) {
       try {
