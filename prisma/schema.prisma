@@ -408,11 +408,11 @@ model Bookmark {
 }
 
 model Booking {
-  id               String      @id @map("booking_id")
-  serviceId        String      @map("service_id")
-  groupId          String      @map("group_id")
-  startBookingDate DateTime    @map("start_booking_date")
-  endBookingDate   DateTime?   @map("end_booking_date")
+  id               String    @id @default(uuid())@map("booking_id")
+  serviceId        String    @map("service_id")
+  groupId          String    @map("group_id")
+  startBookingDate DateTime  @map("start_booking_date")
+  endBookingDate   DateTime? @map("end_booking_date")
   note             String?
   createdAt        DateTime    @default(now()) @map("created_at")
   updatedAt        DateTime?   @updatedAt @map("updated_at")

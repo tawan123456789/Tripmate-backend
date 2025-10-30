@@ -27,6 +27,11 @@ export class AuthService {
       createUserDto.profileImg = url;
     }
 
+    // Ensure username exists (DB requires unique username). If not provided, fall back to email or a generated id.
+    if (!createUserDto.username || createUserDto.username.trim() === '') {
+      createUserDto.username = createUserDto.email || `user_${uuidv4()}`;
+    }
+
     await this.usersService.create(createUserDto);
 
     const user = await this.usersService.findByUsername(createUserDto.email);
