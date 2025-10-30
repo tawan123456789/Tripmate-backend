@@ -1,67 +1,54 @@
-// prisma/schema.prisma
-datasource db {
-  provider = "postgresql" // ใช้ DB อื่นปรับตรงนี้
-  url      = env("DATABASE_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
-/**
- * ---------- หลัก: ผู้ใช้ / กลุ่ม / ทริป ----------
- */
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
 model User {
-  id         String    @id @default(uuid()) @map("user_id") @db.Uuid
-  username   String    @unique
-  gender     String    @default("Other")
-  fname      String
-  lname      String
-  birthDate  DateTime? @map("birth_date") @db.Date
-  role       String?
-  email      String    @unique
-  password   String
-  profileImg String?   @map("profile_img")
-  phone      String?
-  status     String?
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime? @updatedAt @map("updated_at")
-
-  // back-relations
-  ownedGroups    Group[]         @relation("GroupOwner")
-  memberOf       UserJoinGroup[]
-  services       UserService[]   @relation("ServiceOwner")
-  ownedTripPlans TripPlan[]      @relation("TripPlanOwner")
-  discounts      Discount[]      @relation("DiscountOwner")
-  reviews        Review[]
+  id             String          @id @default(uuid()) @map("user_id") @db.Uuid
+  fname          String
+  lname          String
+  birthDate      DateTime?       @map("birth_date") @db.Date
+  role           String?
+  email          String          @unique
+  password       String
+  profileImg     String?         @map("profile_img")
+  phone          String?
+  status         String?
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime?       @updatedAt @map("updated_at")
+  username       String          @unique
+  gender         String          @default("Other")
   bookmarks      Bookmark[]
   discountsMade  Discount[]      @relation("DiscountMaker")
-  // hotels             Hotel[]
-  // guides             Guide[]
-  // carCenters         CarRentalCenter[]
-  // restaurants        Restaurant[]
+  discounts      Discount[]      @relation("DiscountOwner")
+  ownedGroups    Group[]         @relation("GroupOwner")
+  reviews        Review[]
+  ownedTripPlans TripPlan[]      @relation("TripPlanOwner")
+  memberOf       UserJoinGroup[]
+  services       UserService[]   @relation("ServiceOwner")
 
   @@map("User")
 }
 
 model Group {
-  id          String    @id @map("group_id")
-  ownerId     String    @map("owner_id") @db.Uuid
-  owner       User      @relation("GroupOwner", fields: [ownerId], references: [id])
-  groupName   String    @map("group_name")
-  groupImg    String?   @map("group_img")
+  id          String          @id @map("group_id")
+  ownerId     String          @map("owner_id") @db.Uuid
+  groupName   String          @map("group_name")
+  groupImg    String?         @map("group_img")
   status      String?
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime? @updatedAt @map("updated_at")
-  tripPlansId String?   @map("trip_plans_id")
-  description String?   @default("No description") @map("description")
-  profileImg  String?   @map("profile_img")
-
-  // back-relations
-  members   UserJoinGroup[]
-  bookings  Booking[]
-  tripPlans TripPlan?       @relation(fields: [tripPlansId], references: [id])
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime?       @updatedAt @map("updated_at")
+  tripPlansId String?         @map("trip_plans_id")
+  description String?         @default("No description") @map("description")
+  profileImg  String?         @map("profile_img")
+  bookings    Booking[]
+  owner       User            @relation("GroupOwner", fields: [ownerId], references: [id])
+  tripPlans   TripPlan?       @relation(fields: [tripPlansId], references: [id])
+  members     UserJoinGroup[]
 
   @@index([ownerId])
   @@map("Group")
@@ -72,54 +59,49 @@ model UserJoinGroup {
   userId   String   @map("user_id") @db.Uuid
   status   String?
   joinDate DateTime @default(now()) @map("join_date")
-
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([groupId, userId])
   @@map("UserJoinGroup")
 }
 
 model TripPlan {
-  id        String    @id @map("trip_id")
-  ownerId   String    @map("owner_id") @db.Uuid
-  createAt  DateTime  @default(now()) @map("create_at")
-  updateAt  DateTime? @updatedAt @map("update_at")
-  deleteAt  DateTime? @map("delete_at")
-  tripName  String    @map("trip_name")
-  tripImg   String?   @map("trip_img")
-  status    String?
-  note      String?
-  startDate DateTime? @map("start_date") @db.Date
-  endDate   DateTime? @map("end_date") @db.Date
-
-  owner  User       @relation("TripPlanOwner", fields: [ownerId], references: [id])
-  units  TripUnit[]
-  groups Group[]
+  id           String        @id @map("trip_id")
+  ownerId      String        @map("owner_id") @db.Uuid
+  createAt     DateTime      @default(now()) @map("create_at")
+  updateAt     DateTime?     @updatedAt @map("update_at")
+  deleteAt     DateTime?     @map("delete_at")
+  tripName     String        @map("trip_name")
+  tripImg      String?       @map("trip_img")
+  status       String?
+  note         String?
+  startDate    DateTime?     @map("start_date") @db.Date
+  endDate      DateTime?     @map("end_date") @db.Date
+  groups       Group[]
+  owner        User          @relation("TripPlanOwner", fields: [ownerId], references: [id])
   tripServices TripService[]
+  units        TripUnit[]
 
   @@index([ownerId])
   @@map("TripPlan")
 }
 
 model TripUnit {
-  id             String    @id @map("unit_id")
-  tripId         String    @map("trip_id")
-  placeId        String?    @map("place_id")
-  serviceId      String?   @map("service_id")
-  timeStampStart DateTime  @map("time_stamp_start")
+  id             String       @id @map("unit_id")
+  tripId         String       @map("trip_id")
+  placeId        String?      @map("place_id")
+  timeStampStart DateTime     @map("time_stamp_start")
   duration       Int?
   status         String?
   note           String?
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime? @updatedAt @map("updated_at")
-  deletedAt      DateTime? @map("deleted_at")
-
-
-  trip  TripPlan @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  place Place?    @relation(fields: [placeId], references: [id])
-  service Booking? @relation(fields: [serviceId], references: [id])
-  
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime?    @updatedAt @map("updated_at")
+  deletedAt      DateTime?    @map("deleted_at")
+  serviceId      String?      @map("service_id")
+  place          Place?       @relation(fields: [placeId], references: [id], onDelete: Restrict)
+  service        UserService? @relation(fields: [serviceId], references: [id])
+  trip           TripPlan     @relation(fields: [tripId], references: [id], onDelete: Cascade)
 
   @@index([tripId])
   @@index([placeId])
@@ -127,127 +109,104 @@ model TripUnit {
 }
 
 model TripService {
-  id        String    @id @map("trip_service_id")
-  tripId    String   @map("trip_id")
-  serviceId String   @map("service_id")
-  date  DateTime @map("date_time")
+  id        String      @id @map("trip_service_id")
+  tripId    String      @map("trip_id")
+  serviceId String      @map("service_id")
+  date      DateTime    @map("date_time") @db.Timestamp(6)
   status    String?
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime?   @updatedAt @map("updated_at") @db.Timestamp(6)
+  service   UserService @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_tripservice_service")
+  trip      TripPlan    @relation(fields: [tripId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_tripservice_trip")
 
-
-
-  trip TripPlan   @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  service  UserService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-
-
-  @@index([tripId])
-  @@index([serviceId])
+  @@index([serviceId], map: "idx_tripservice_service_id")
+  @@index([tripId], map: "idx_tripservice_trip_id")
   @@map("TripService")
 }
 
-/**
- * ---------- สถานที่ / พิกัด ----------
- */
-
 model Place {
-  id          String  @id @map("place_id")
-  locationId  String? @map("location_id")
+  id          String     @id @map("place_id")
+  locationId  String?    @map("location_id")
   name        String
   description String?
-  placeImg    String? @map("place_img")
-
-  location  Location?  @relation(fields: [locationId], references: [id])
-  tripUnits TripUnit[]
+  placeImg    String?    @map("place_img")
+  location    Location?  @relation(fields: [locationId], references: [id])
+  tripUnits   TripUnit[]
 
   @@index([locationId])
   @@map("Place")
 }
 
 model Location {
-  id        String    @id @map("location_id")
-  lat       Float
-  long      Float
-  name      String
-  detail    String?
-  status    String?
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  country  String?
-  province String?
-  address  String?
-  district String?
-  street   String?
-  zipCode  String? @map("zip_code")
-
+  id            String        @id @map("location_id")
+  lat           Float
+  long          Float
+  name          String
+  detail        String?
+  status        String?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime?     @updatedAt @map("updated_at")
+  deletedAt     DateTime?     @map("deleted_at")
+  country       String?
+  province      String?
+  address       String?
+  district      String?
+  street        String?
+  zipCode       String?       @map("zip_code")
+  places        Place[]
   servicesByLoc UserService[] @relation("ServiceLoc")
-
-  places Place[]
 
   @@map("Location")
 }
 
-/**
- * ---------- กลุ่มบริการรวม / ประเภทบริการย่อย ----------
- */
-
 model UserService {
-  id          String    @id @map("service_id")
-  ownerId     String    @map("owner_id") @db.Uuid
-  locationId  String?   @map("location_id")
-  name        String
-  description String?
-  serviceImg  String?   @map("service_img")
-  status      String?
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime? @updatedAt @map("updated_at")
-  deletedAt   DateTime? @map("deleted_at")
-  type        String?
-  owner       User      @relation("ServiceOwner", fields: [ownerId], references: [id])
-  location    Location? @relation("ServiceLoc", fields: [locationId], references: [id])
-
-  hotel           Hotel?
-  guide           Guide?
+  id              String           @id @map("service_id")
+  ownerId         String           @map("owner_id") @db.Uuid
+  locationId      String?          @map("location_id")
+  name            String
+  description     String?
+  serviceImg      String?          @map("service_img")
+  status          String?
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime?        @updatedAt @map("updated_at")
+  deletedAt       DateTime?        @map("deleted_at")
+  type            String?
+  bookings        Booking[]
+  bookmarks       Bookmark[]
   carRentalCenter CarRentalCenter?
+  guide           Guide?
+  hotel           Hotel?
   restaurant      Restaurant?
+  reviews         Review[]
+  tripServices    TripService[]
+  tripUnits       TripUnit[]
+  location        Location?        @relation("ServiceLoc", fields: [locationId], references: [id])
+  owner           User             @relation("ServiceOwner", fields: [ownerId], references: [id])
 
-  reviews   Review[]
-  bookmarks Bookmark[]
-  bookings  Booking[]
-  tripServices TripService[]
-  
   @@index([ownerId])
   @@index([locationId])
   @@map("UserService")
 }
 
-/**
- * ---------- บริการย่อย + รายการย่อย ----------
- */
-
-// ========= ADD/UPDATE: Hotel =========
-
 model Hotel {
   id              String      @id @map("hotel_id")
   name            String
-  type            String? // "hotel" | "resort" | ...
-  star            Int? // 1..5 (rating แบบดาว ไม่ใช่รีวิว)
   description     String?
-  image           String? // cover (compat เดิม)
-  pictures        String[]    @default([]) // ถูก: TEXT[] พร้อมค่าเริ่มต้น []      // ~5-10 รูป
-  facility        String? // compat เดิม: ;wifi;pool;...
-  facilities      Json?   // โครง object แยกหมวด (ดูตัวอย่างด้านล่าง)
-  rating          Decimal?    @db.Decimal(3, 1) // 0..10 ทศนิยม
+  facility        String?
+  rating          Decimal?    @db.Decimal(3, 1)
+  image           String?
+  breakfast       String?
   checkIn         String?
   checkOut        String?
-  breakfast       String? // ข้อมูลนโยบายอาหารเช้า (เช่น เวลา/มีหรือไม่)
-  petAllow        Boolean?    @map("pet_allow")
   contact         String?
-  subtopicRatings Json?       @map("subtopic_ratings") // {cleanliness, comfort, meal, ...}
+  facilities      Json?
   locationSummary String?     @map("location_text")
-  nearbyLocations String[]    @default([]) @map("nearby_locations") // ["Place A - 0.5 km", "Place B - 1 km"]
+  nearbyLocations String[]    @default([]) @map("nearby_locations")
+  petAllow        Boolean?    @map("pet_allow")
+  pictures        String[]    @default([])
+  star            Int?
+  subtopicRatings Json?       @map("subtopic_ratings")
+  type            String?
   service         UserService @relation(fields: [id], references: [id], onDelete: Cascade)
   rooms           Room[]
 
@@ -257,16 +216,15 @@ model Hotel {
 model Room {
   id            String   @map("room_id")
   hotelId       String   @map("hotel_id")
-  name          String? // ชื่่อห้อง
-  pictures      String[] @default([]) // ถูก: TEXT[] พร้อมค่าเริ่มต้น []    // รูปห้อง ~1-5
-  description   String?
-  image         String? // compat เดิม
+  pricePerNight Decimal? @map("price_per_night") @db.Decimal(10, 2)
   bedType       String?  @map("bed_type")
   personPerRoom Int?     @map("person_per_room")
-  sizeSqm       Int?     @map("size_sqm") // ขนาดห้อง (ตร.ม.)
+  description   String?
+  image         String?
   facilities    String[] @default([]) @map("facilities")
-  pricePerNight Decimal? @map("price_per_night") @db.Decimal(10, 2)
- 
+  name          String?
+  pictures      String[] @default([])
+  sizeSqm       Int?     @map("size_sqm")
   hotel         Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
 
   @@id([id, hotelId])
@@ -277,32 +235,29 @@ model Room {
 model Restaurant {
   id                String      @id @map("restaurant_id")
   name              String
-  type              String?     // เช่น "restaurant" | "cafe" | "bar" | ...
-  cuisine           String?     // เช่น "Thai" | "Japanese" | ...
-  priceLevel        Int?        @map("price_level") // 1..5 (ช่วงราคาโดยรวม)
   description       String?
-  menu              String?     // PDF URL หรือข้อความ (compat เดิม)
-  image             String?     // compat เดิม (cover เดี่ยว)
-  pictures          String[]    @default([]) // TEXT[]: รูปหลายใบ (แนะนำ ~5-10)
-  facility          String?     // compat เดิม: ;wifi;parking;...
-  facilities        Json?       // โครง object แยกหมวด (ตัวอย่างด้านล่าง)
-  rating            Decimal?    @db.Decimal(3, 1) // 0..10 ทศนิยม (แนวเดียวกับ Hotel)
-  subtopicRatings   Json?       @map("subtopic_ratings") // {taste, cleanliness, service, value, ambience, ...}
+  menu              String?
+  image             String?
+  rating            Decimal?    @db.Decimal(3, 1)
+  priceLevel        Int?        @map("price_level")
+  contact           String?
+  contacts          Json?
+  cuisine           String?
+  dietaryTags       String[]    @default([])
+  facilities        Json?
+  facility          String?
   locationSummary   String?     @map("location_text")
-  nearbyLocations   String[]    @default([]) @map("nearby_locations") // ["Landmark A - 200 m", "BTS X - 0.6 km"]
-  contact           String?     // อีเมล/โทร/ไลน์/เว็บ (string รวม หรือแยกเป็น JSON ด้านล่างก็ได้)
-  contacts          Json?       // {phone, email, website, line, facebook, instagram, ...}
-  openingHours      Json?       @map("opening_hours") // [{day: "Mon", open: "10:00", close: "21:00"}, ...]
-  reservationPolicy Json?       @map("reservation_policy") // {required?: bool, deposit?: number, channels?: [...]}
+  nearbyLocations   String[]    @default([]) @map("nearby_locations")
+  openingHours      Json?       @map("opening_hours")
+  paymentMethods    String[]    @default([]) @map("payment_methods")
   petAllow          Boolean?    @map("pet_allow")
-  dietaryTags       String[]    @default([]) // ["Halal","Vegetarian","Vegan","Gluten-free",...]
-  services          String[]    @default([]) // ["Delivery","Takeaway","Dine-in",...]
-  paymentMethods    String[]    @default([]) @map("payment_methods") // ["Cash","Credit","QR",...]
-  tables            Table[]
-  // ความสัมพันธ์กับ UserService (เหมือน Hotel ใช้ id ผูกกับ service.id)
+  pictures          String[]    @default([])
+  reservationPolicy Json?       @map("reservation_policy")
+  services          String[]    @default([])
+  subtopicRatings   Json?       @map("subtopic_ratings")
+  type              String?
   service           UserService @relation(fields: [id], references: [id], onDelete: Cascade)
-
-  // ความสัมพันธ์ย่อย
+  tables            Table[]
 
   @@map("Restaurant")
 }
@@ -311,69 +266,58 @@ model Restaurant {
 /// CAR RENTAL CENTER (rich like Hotel)
 /// ===================================
 model CarRentalCenter {
-  id          String   @id @map("crc_id")
-  name        String
-  type        String? // เช่น "car_rental" | "motorbike_rental" | ...
-  description String?
-  image       String?
-  pictures    String[] @default([]) // รูปสาขา/เคาน์เตอร์/รถรวม
-  facility    String? // compat เดิม
-  facilities  Json? // {parking, lounge, insuranceDesk, ...}
-
-  rating          Decimal? @db.Decimal(3, 1) // อัปสเกลให้เท่า Hotel (เดิม 2,1)
-  subtopicRatings Json?    @map("subtopic_ratings") // {carCondition, cleanliness, staff, value, pickupDropoff, ...}
-
-  locationSummary String?  @map("location_text")
-  nearbyLocations String[] @default([]) @map("nearby_locations")
+  id              String      @id @map("crc_id")
+  name            String
+  description     String?
+  image           String?
+  rating          Decimal?    @db.Decimal(3, 1)
+  branches        Json?       @map("branches")
   contact         String?
-  contacts        Json? // {phone, email, website, line, ...}
-
-  openingHours  Json? @map("opening_hours") // [{day, open, close}]
-  branches      Json? @map("branches") // [{name, address, geo:{lat,lng}}...]
-  pickupDropoff Json? @map("pickup_dropoff") // {airport?:bool, hotel?:bool, shuttle?:bool, fees?:{...}}
-
-  policies       Json? // {fuelPolicy, mileagePolicy, agePolicy, deposit, insurance, cancellation,...}
-  paymentMethods String[] @default([]) @map("payment_methods") // ["Cash","Credit","QR",...]
-  requiredDocs   String[] @default([]) @map("required_docs") // ["Passport","DrivingLicense","CreditCard",...]
-
-  // ความสัมพันธ์กับ UserService (ตามแพทเทิร์นเดียวกับ Hotel)
-  service UserService @relation(fields: [id], references: [id], onDelete: Cascade)
-
-  // ความสัมพันธ์ย่อย (รถให้เช่า)
-  cars Car[]
+  contacts        Json?
+  facilities      Json?
+  facility        String?
+  locationSummary String?     @map("location_text")
+  nearbyLocations String[]    @default([]) @map("nearby_locations")
+  openingHours    Json?       @map("opening_hours")
+  paymentMethods  String[]    @default([]) @map("payment_methods")
+  pickupDropoff   Json?       @map("pickup_dropoff")
+  pictures        String[]    @default([])
+  policies        Json?
+  requiredDocs    String[]    @default([]) @map("required_docs")
+  subtopicRatings Json?       @map("subtopic_ratings")
+  type            String?
+  cars            Car[]
+  service         UserService @relation(fields: [id], references: [id], onDelete: Cascade)
 
   @@map("CarRentalCenter")
 }
 
 /// รถให้เช่า (ถ้ายังไม่มีโมเดล Car ให้ใช้ด้านล่างนี้ได้)
 model Car {
-  id           String   @id @map("car_id")
-  crcId        String   @map("crc_id")
-  brand        String?
-  model        String?
-  year         Int?
-  transmission String? // "AT" | "MT" | ...
-  seats        Int?     @map("carseat")
-  doors        Int?
-  luggage      Int? // ความจุกระเป๋า (ชิ้น)
-  pictures     String[] @default([])
-  image        String? // compat เดิม
-
-  fuelType       String? // "Petrol" | "Diesel" | "Hybrid" | "EV"
-  mileageLimitKm Int?     @map("mileage_limit_km") // ต่อวัน
-  deposit        Decimal? @db.Decimal(10, 2)
-  pricePerDay    Decimal? @map("price_per_day") @db.Decimal(10, 2)
-  pricePerHour   Decimal? @map("price_per_hour") @db.Decimal(10, 2)
-  currency       String?  @default("THB")
-
-  features     String[]  @default([]) // ["Bluetooth","USB","Airbag","ABS","Dashcam",...]
-  insurance    Json? // {basic, full, excess, theftProtection, ...}
-  availability Json? // {instant?: bool, blackoutDates?: ["2025-12-31", ...]}
-  createdAt    DateTime? @map("created_at")
-  updatedAt    DateTime? @map("updated_at")
-  description    String?   @map("description")
-
-  rentalCenter CarRentalCenter @relation(fields: [crcId], references: [id], onDelete: Cascade)
+  id             String          @id @map("car_id")
+  crcId          String          @map("crc_id")
+  pricePerDay    Decimal?        @map("price_per_day") @db.Decimal(10, 2)
+  model          String?
+  description    String?         @map("description")
+  seats          Int?            @map("carseat")
+  image          String?
+  createdAt      DateTime?       @map("created_at")
+  updatedAt      DateTime?       @map("updated_at")
+  availability   Json?
+  brand          String?
+  currency       String?         @default("THB")
+  deposit        Decimal?        @db.Decimal(10, 2)
+  doors          Int?
+  features       String[]        @default([])
+  fuelType       String?
+  insurance      Json?
+  luggage        Int?
+  mileageLimitKm Int?            @map("mileage_limit_km")
+  pictures       String[]        @default([])
+  pricePerHour   Decimal?        @map("price_per_hour") @db.Decimal(10, 2)
+  transmission   String?
+  year           Int?
+  rentalCenter   CarRentalCenter @relation(fields: [crcId], references: [id], onDelete: Cascade)
 
   @@index([crcId])
   @@map("Car")
@@ -383,79 +327,65 @@ model Car {
 /// GUIDE (rich like Hotel)
 /// ===============================
 model Guide {
-  id              String   @id @map("guide_id")
+  id              String      @id @map("guide_id")
   name            String
   description     String?
   image           String?
-  pictures        String[] @default([]) // อัลบั้มงานพาเที่ยว
-  rating          Decimal? @db.Decimal(3, 1) // ปรับสเกล 0..10 ให้สอดรับ Hotel (เดิม 2,1)
-  subtopicRatings Json?    @map("subtopic_ratings") // {knowledge, communication, punctuality, safety, value, ...}
-
-  // โปรไฟล์/ความเชี่ยวชาญ
-  languages       String[] @default([]) // ["Thai","English","中文",...]
-  licenseId       String?  @map("license_id")
-  verified        Boolean? @default(false)
-  experienceYears Int?     @map("experience_years")
-  specialties     String[] @default([]) // ["Temple","Food tour","Hiking","Diving",...]
-  regionsCovered  String[] @default([]) // ["Bangkok","Chiang Mai","Krabi",...]
-
-  // ราคา & เงื่อนไข (คงฟิลด์ pay เดิมไว้เป็น compat)
-  pay          Decimal? @map("pay") // compat เดิม
-  hourlyRate   Decimal? @map("hourly_rate") @db.Decimal(10, 2)
-  dayRate      Decimal? @map("day_rate") @db.Decimal(10, 2)
-  overtimeRate Decimal? @map("overtime_rate") @db.Decimal(10, 2)
-  currency     String?  @default("THB")
-
-  contact      String?
-  contacts     Json? // {phone,email,line,facebook,instagram,website,...}
-  availability Json? // {calendar:[{date:"2025-11-01",slots:[...]},...]}
-  policies     Json? // {cancellation, overtimePolicy, groupSizeLimit, tips, ...}
-
-  locationSummary String?  @map("location_text")
-  nearbyLocations String[] @default([]) @map("nearby_locations")
-
-  // ความสัมพันธ์กับ UserService
-  service UserService @relation(fields: [id], references: [id], onDelete: Cascade)
+  rating          Decimal?    @db.Decimal(3, 1)
+  pay             Decimal?    @map("pay")
+  availability    Json?
+  contact         String?
+  contacts        Json?
+  currency        String?     @default("THB")
+  dayRate         Decimal?    @map("day_rate") @db.Decimal(10, 2)
+  experienceYears Int?        @map("experience_years")
+  hourlyRate      Decimal?    @map("hourly_rate") @db.Decimal(10, 2)
+  languages       String[]    @default([])
+  licenseId       String?     @map("license_id")
+  locationSummary String?     @map("location_text")
+  nearbyLocations String[]    @default([]) @map("nearby_locations")
+  overtimeRate    Decimal?    @map("overtime_rate") @db.Decimal(10, 2)
+  pictures        String[]    @default([])
+  policies        Json?
+  regionsCovered  String[]    @default([])
+  specialties     String[]    @default([])
+  subtopicRatings Json?       @map("subtopic_ratings")
+  verified        Boolean?    @default(false)
+  service         UserService @relation(fields: [id], references: [id], onDelete: Cascade)
 
   @@map("Guide")
 }
 
 model Table {
-  id           String    @map("table_id")
-  restaurantId String    @map("restaurant_id")
+  id           String     @map("table_id")
+  restaurantId String     @map("restaurant_id")
   model        String?
   description  String?
   seat         Int?
-  pricePerSeat Decimal?  @map("price_per_seat") @db.Decimal(10, 2)
+  pricePerSeat Decimal?   @map("price_per_seat") @db.Decimal(10, 2)
   status       String?
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime? @updatedAt @map("updated_at")
-  deletedAt    DateTime? @map("deleted_at")
-
-  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime?  @updatedAt @map("updated_at")
+  deletedAt    DateTime?  @map("deleted_at")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
   @@id([id, restaurantId])
   @@index([restaurantId])
   @@map("Table")
 }
 
-/**
- * ---------- Review / Bookmark / Booking / Discount ----------
- */
-
 model Review {
-  id        String    @id @map("review_id")
-  serviceId String    @map("service_id")
-  userId    String    @map("user_id") @db.Uuid
+  id        String      @id @map("review_id")
+  serviceId String      @map("service_id")
+  userId    String      @map("user_id") @db.Uuid
   comment   String?
   score     Int?
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime?   @updatedAt @map("updated_at")
   status    String?
   image     String?
-
-  service UserService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  service   UserService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([serviceId])
   @@index([userId])
@@ -463,15 +393,14 @@ model Review {
 }
 
 model Bookmark {
-  id        String    @id @map("bookmark_id")
-  serviceId String    @map("service_id")
-  userId    String    @map("user_id") @db.Uuid
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
+  id        String      @id @default(uuid()) @map("bookmark_id")
+  serviceId String      @map("service_id")
+  userId    String      @map("user_id") @db.Uuid
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime?   @updatedAt @map("updated_at")
   status    String?
-
-  service UserService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  service   UserService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([serviceId])
   @@index([userId])
@@ -479,22 +408,17 @@ model Bookmark {
 }
 
 model Booking {
-  id               String    @id @map("booking_id")
-  serviceId        String    @map("service_id")
-  groupId          String    @map("group_id")
-  startBookingDate DateTime  @map("start_booking_date")
-  endBookingDate   DateTime? @map("end_booking_date")
+  id               String      @id @map("booking_id")
+  serviceId        String      @map("service_id")
+  groupId          String      @map("group_id")
+  startBookingDate DateTime    @map("start_booking_date")
+  endBookingDate   DateTime?   @map("end_booking_date")
   note             String?
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime? @updatedAt @map("updated_at")
-
-  status String?
-
-  tripUnits TripUnit[]
-
-
-  service UserService @relation(fields: [serviceId], references: [id])
-  group   Group       @relation(fields: [groupId], references: [id])
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime?   @updatedAt @map("updated_at")
+  status           String?
+  group            Group       @relation(fields: [groupId], references: [id])
+  service          UserService @relation(fields: [serviceId], references: [id])
 
   @@index([serviceId])
   @@index([groupId])
@@ -510,9 +434,8 @@ model Discount {
   createdAt DateTime  @default(now()) @map("created_at")
   expiredAt DateTime? @map("expired_at")
   maker_id  String?   @map("maker_id") @db.Uuid
-
-  owner User  @relation("DiscountOwner", fields: [ownerId], references: [id])
-  maker User? @relation("DiscountMaker", fields: [maker_id], references: [id])
+  maker     User?     @relation("DiscountMaker", fields: [maker_id], references: [id])
+  owner     User      @relation("DiscountOwner", fields: [ownerId], references: [id])
 
   @@index([ownerId])
   @@map("Discount")
