@@ -4,7 +4,8 @@ import { UpdateUserJoinGroupDto } from './dto/update-user_join_group.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { ConflictException } from '@nestjs/common/exceptions';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception';
+
 
 @Injectable()
 export class UserJoinGroupService {

@@ -7,6 +7,7 @@ import { CreateRestaurantDto } from 'src/restaurant/dto/create-restaurant.dto';
 import { UpdateUserServiceDto } from './dto/update-user-service.dto';
 import { CreateCarRentalCenterDto } from 'src/car_rental_center/dto/create-car_rental_center.dto';
 import { CreateGuideDto } from 'src/guide/dto/create-guide.dto';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class UserServicesService {
