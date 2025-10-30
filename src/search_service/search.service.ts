@@ -367,7 +367,6 @@ async searchRestaurants(q: SearchQueryDto): Promise<Paginated<any>> {
           }
         : {},
 
-      // ✅ ราคา: จาก Table.pricePerSeat (มีอย่างน้อยหนึ่งโต๊ะเข้าเงื่อนไข)
       q.priceMin
         ? { tables: { some: { pricePerSeat: { gte: Number(q.priceMin) } } } }
         : {},
