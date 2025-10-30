@@ -39,8 +39,29 @@ export class TripService {
     
     // collect trip units from days/events
     const units: Array<any> = [];
+    // collect trip services (accommodation/guide entries)
+    const tripServices: Array<any> = [];
     if (Array.isArray(createTripDto.days)) {
       for (const day of createTripDto.days) {
+        // if accommodationId or guideId provided, create TripService entries
+        if (day.accommodationId) {
+          tripServices.push({
+            id: `ts_${randomAlphanumeric(10)}`,
+            tripId: tripId,
+            serviceId: day.accommodationId,
+            date: day.date ? new Date(day.date) : undefined,
+            status: 'accommodation',
+          });
+        }
+        if (day.guideId) {
+          tripServices.push({
+            id: `ts_${randomAlphanumeric(10)}`,
+            tripId: tripId,
+            serviceId: day.guideId,
+            date: day.date ? new Date(day.date) : undefined,
+            status: 'guide',
+          });
+        }
         if (!Array.isArray(day.events)) continue;
         for (const ev of day.events) {
           // only create a TripUnit when placeId is provided (model requires placeId)
@@ -79,6 +100,12 @@ export class TripService {
     if (units.length > 0) {
       // createMany for performance
       await this.prisma.tripUnit.createMany({ data: units });
+    }
+
+    // create tripServices entries if any
+    if (tripServices.length > 0) {
+      // use createMany; Prisma will ignore duplicates if any
+      await this.prisma.tripService.createMany({ data: tripServices });
     }
 
     // return created trip with units
