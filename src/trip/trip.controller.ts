@@ -31,4 +31,13 @@ export class TripController {
   remove(@Param('id') id: string) {
     return this.tripService.remove(+id);
   }
+
+  // @Get('public')
+  // public() {
+  //   return this.tripService.public();
+  // }
+
+
+
+
 }

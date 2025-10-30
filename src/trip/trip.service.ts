@@ -130,4 +130,10 @@ export class TripService {
   remove(id: number) {
     return `This action removes a #${id} trip`;
   }
+
+  async publicTrip() {
+    const trips = await this.prisma.tripPlan.findMany({
+      where: { status: 'public' }
+    });
+    }
 }
