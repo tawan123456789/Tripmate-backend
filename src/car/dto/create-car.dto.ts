@@ -27,6 +27,7 @@ export class CreateCarDto {
   @IsOptional() @IsString() currency?: string;
 
   @IsOptional() @IsArray() @IsString({ each: true }) features?: string[];
+    @IsOptional() @IsString() description?: string;
 
   /** insurance / availability เป็น JSON อิสระ — ถ้าต้อง strict ค่อยแตก DTO ภายหลัง */
   @IsOptional() insurance?: Record<string, any>;

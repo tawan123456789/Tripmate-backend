@@ -16,7 +16,7 @@ export class CarService {
               pricePerDay: dto.pricePerDay,
               model: dto.model,
               description: dto.description,
-              carseat: dto.carseat,
+              seats: dto.seats,
               image: dto.image,
               crcId: dto.crcId,
               
@@ -55,7 +55,7 @@ export class CarService {
                 pricePerDay: dto.pricePerDay,
                 model: dto.model,
                 description: dto.description,
-                carseat: dto.carseat,
+                seats: dto.seats,
                 image: dto.image,
                 crcId: dto.crcId,
             },
