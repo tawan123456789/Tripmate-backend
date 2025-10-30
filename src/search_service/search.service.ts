@@ -367,7 +367,6 @@ async searchRestaurants(q: SearchQueryDto): Promise<Paginated<any>> {
           }
         : {},
 
-      // ✅ ราคา: จาก Table.pricePerSeat (มีอย่างน้อยหนึ่งโต๊ะเข้าเงื่อนไข)
       q.priceMin
         ? { tables: { some: { pricePerSeat: { gte: Number(q.priceMin) } } } }
         : {},
@@ -974,7 +973,7 @@ async searchRentals(q: SearchQueryDto): Promise<Paginated<any>> {
 
 
   /* ------- GUIDES (ไกด์ท้องถิ่น) ------- */
-async searchGuides(q: SearchQueryDto): Promise<Paginated<any>> {
+async searchGuides(q: SearchQueryDto): Promise<Paginated<any>> { 
   const { page, pageSize, skip, take } = parsePaging(q);
 
   // ✅ 1. ทำความสะอาด amenities ให้เป็น array เสมอ
@@ -1096,7 +1095,7 @@ async searchGuides(q: SearchQueryDto): Promise<Paginated<any>> {
         image: true,
         rating: true,
         pay: true,
-        language: true,
+        languages: true,
         service: {
           select: {
             createdAt: true,
@@ -1127,7 +1126,7 @@ async searchGuides(q: SearchQueryDto): Promise<Paginated<any>> {
       image: g.image,
       rating: g.rating,
       pay: g.pay,
-      language: g.language,
+      language: g.languages,
       location: loc
         ? {
             name: loc.name,

@@ -40,11 +40,10 @@ async findOne(id: string) {
 
   async update(id: string, dto: UpdateCarRentalCenterDto) {
     try {
+      
       return await this.prisma.carRentalCenter.update({
         where: { id },
-        data: {
-          ...dto,
-        },
+        data: { ...dto, id: undefined } as any,
       });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
