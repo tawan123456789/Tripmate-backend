@@ -1,8 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { v4 as uuidv4 } from 'uuid';
 import { randomAlphanumeric } from '../utils/random.util';
-import { CreateTripPlanDto, TripEventType } from './dto/create-trip.dto';
+import { CreateTripPlanDto } from './dto/create-trip.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
 
 @Injectable()
@@ -15,7 +14,7 @@ export class TripService {
       throw new BadRequestException('ownerId is required');
     }
 
-    const tripId = `t_${randomAlphanumeric(8)}`;
+    const tripId = `${randomAlphanumeric(6)}`;
     if (!createTripDto.status){
       createTripDto.status = 'private';
     }
@@ -92,7 +91,6 @@ export class TripService {
             });
           
           }
-;
         }
       }
     }
@@ -111,7 +109,7 @@ export class TripService {
     // return created trip with units
     return this.prisma.tripPlan.findUnique({
       where: { id: tripId },
-      include: { units: true },
+      include: { units: true, tripServices: true },
     });
   }
 
@@ -119,8 +117,19 @@ export class TripService {
     return `This action returns all trip`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} trip`;
+  async findOne(id: string) {
+    const trip = await this.prisma.tripPlan.findUnique({ where: { id }, include: { units: true, tripServices: true } });
+    if (!trip) {
+      throw new BadRequestException('Trip not found');
+    }
+    
+    if (trip.status === 'private') {
+      throw new BadRequestException('Trip is private');
+    }
+
+
+
+    return trip;
   }
 
   update(id: number, updateTripDto: UpdateTripDto) {
@@ -135,5 +144,6 @@ export class TripService {
     const trips = await this.prisma.tripPlan.findMany({
       where: { status: 'public' }
     });
-    }
+    return trips;
+}
 }
