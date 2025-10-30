@@ -16,10 +16,9 @@ export class CarService {
               pricePerDay: dto.pricePerDay,
               model: dto.model,
               description: dto.description,
-              seats: dto.seats,
+              carseat: dto.seats,
               image: dto.image,
               crcId: dto.crcId,
-              
             },
           });
         } catch (e) {
@@ -44,9 +43,9 @@ export class CarService {
     }
   
     async update(id: string, dto: UpdateCarDto) {
-      const existing = await this.prisma.hotel.findUnique({ where: { id } });
+      const existing = await this.prisma.car.findUnique({ where: { id } });
           if (!existing) {
-              throw new NotFoundException('Location not found');
+              throw new NotFoundException('Car not found');
           }
           return this.prisma.car.update({
               where: { id },
@@ -55,7 +54,7 @@ export class CarService {
                 pricePerDay: dto.pricePerDay,
                 model: dto.model,
                 description: dto.description,
-                seats: dto.seats,
+                carseat: dto.seats,
                 image: dto.image,
                 crcId: dto.crcId,
             },
