@@ -5,5 +5,6 @@ import { GuideController } from './guide.controller';
 @Module({
   controllers: [GuideController],
   providers: [GuideService],
+  exports: [GuideService],
 })
 export class GuideModule {}
