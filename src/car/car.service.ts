@@ -19,7 +19,6 @@ export class CarService {
               seats: dto.seats,
               image: dto.image,
               crcId: dto.crcId,
-              
             },
           });
         } catch (e) {
