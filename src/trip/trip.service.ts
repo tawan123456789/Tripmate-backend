@@ -1,11 +1,118 @@
-import { Injectable } from '@nestjs/common';
-import { CreateTripDto } from './dto/create-trip.dto';
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { v4 as uuidv4 } from 'uuid';
+import { randomAlphanumeric } from '../utils/random.util';
+import { CreateTripPlanDto, TripEventType } from './dto/create-trip.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
 
 @Injectable()
 export class TripService {
-  create(createTripDto: CreateTripDto) {
-    return 'This action adds a new trip';
+  constructor(private prisma: PrismaService) {}
+
+  async create(createTripDto: CreateTripPlanDto) {
+    // basic validation
+    if (!createTripDto.ownerId) {
+      throw new BadRequestException('ownerId is required');
+    }
+
+    const tripId = `t_${randomAlphanumeric(8)}`;
+    if (!createTripDto.status){
+      createTripDto.status = 'private';
+    }
+
+    // prepare trip data
+    const tripData: any = {
+      id: tripId,
+      ownerId: createTripDto.ownerId,
+      tripName: createTripDto.tripName,
+      tripImg: createTripDto.tripImg,
+      status: createTripDto.status,
+      note: createTripDto.note,
+      startDate: createTripDto.startDate ? new Date(createTripDto.startDate) : undefined,
+      endDate: createTripDto.endDate ? new Date(createTripDto.endDate) : undefined,
+    };
+
+    // create trip plan
+    const trip = await this.prisma.tripPlan.create({ data: tripData });
+
+
+    
+    // collect trip units from days/events
+    const units: Array<any> = [];
+    // collect trip services (accommodation/guide entries)
+    const tripServices: Array<any> = [];
+    if (Array.isArray(createTripDto.days)) {
+      for (const day of createTripDto.days) {
+        // if accommodationId or guideId provided, create TripService entries
+        if (day.accommodationId) {
+          tripServices.push({
+            id: `ts_${randomAlphanumeric(10)}`,
+            tripId: tripId,
+            serviceId: day.accommodationId,
+            date: day.date ? new Date(day.date) : undefined,
+            status: 'accommodation',
+          });
+        }
+        if (day.guideId) {
+          tripServices.push({
+            id: `ts_${randomAlphanumeric(10)}`,
+            tripId: tripId,
+            serviceId: day.guideId,
+            date: day.date ? new Date(day.date) : undefined,
+            status: 'guide',
+          });
+        }
+        if (!Array.isArray(day.events)) continue;
+        for (const ev of day.events) {
+          // only create a TripUnit when placeId is provided (model requires placeId)
+          if (!ev.placeId) continue;
+          // create unit for visit events (TripEventType.VISIT)
+          if (ev.type == "place"){
+            units.push({
+            id: `ut_${randomAlphanumeric(10)}`,
+            tripId: tripId,
+            serviceId: null,
+            placeId: ev.placeId,
+            timeStampStart: new Date(ev.startAt),
+            duration: ev.durationMinutes,
+            status: ev.status,
+            note: ev.note,
+          })
+        }
+          else if(ev.type == "service"){
+            units.push({
+              id: `ut_${randomAlphanumeric(10)}`,
+              tripId: tripId,
+              serviceId: ev.placeId,
+              placeId: null,
+              timeStampStart: new Date(ev.startAt),
+              duration: ev.durationMinutes,
+              status: ev.status,
+              note: ev.note,
+            });
+          
+          }
+;
+        }
+      }
+    }
+
+    if (units.length > 0) {
+      // createMany for performance
+      await this.prisma.tripUnit.createMany({ data: units });
+    }
+
+    // create tripServices entries if any
+    if (tripServices.length > 0) {
+      // use createMany; Prisma will ignore duplicates if any
+      await this.prisma.tripService.createMany({ data: tripServices });
+    }
+
+    // return created trip with units
+    return this.prisma.tripPlan.findUnique({
+      where: { id: tripId },
+      include: { units: true },
+    });
   }
 
   findAll() {

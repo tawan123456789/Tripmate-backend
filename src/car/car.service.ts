@@ -43,9 +43,9 @@ export class CarService {
     }
   
     async update(id: string, dto: UpdateCarDto) {
-      const existing = await this.prisma.hotel.findUnique({ where: { id } });
+      const existing = await this.prisma.car.findUnique({ where: { id } });
           if (!existing) {
-              throw new NotFoundException('Location not found');
+              throw new NotFoundException('Car not found');
           }
           return this.prisma.car.update({
               where: { id },

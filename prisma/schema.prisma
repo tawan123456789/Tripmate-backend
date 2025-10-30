@@ -96,6 +96,7 @@ model TripPlan {
   owner  User       @relation("TripPlanOwner", fields: [ownerId], references: [id])
   units  TripUnit[]
   groups Group[]
+  tripServices TripService[]
 
   @@index([ownerId])
   @@map("TripPlan")
@@ -104,7 +105,7 @@ model TripPlan {
 model TripUnit {
   id             String    @id @map("unit_id")
   tripId         String    @map("trip_id")
-  placeId        String    @map("place_id")
+  placeId        String?    @map("place_id")
   serviceId      String?   @map("service_id")
   timeStampStart DateTime  @map("time_stamp_start")
   duration       Int?
@@ -116,12 +117,33 @@ model TripUnit {
 
 
   trip  TripPlan @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  place Place    @relation(fields: [placeId], references: [id])
-  service UserService? @relation(fields: [serviceId], references: [id])
+  place Place?    @relation(fields: [placeId], references: [id])
+  service Booking? @relation(fields: [serviceId], references: [id])
+  
 
   @@index([tripId])
   @@index([placeId])
   @@map("TripUnit")
+}
+
+model TripService {
+  id        String    @id @map("trip_service_id")
+  tripId    String   @map("trip_id")
+  serviceId String   @map("service_id")
+  date  DateTime @map("date_time")
+  status    String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+
+
+  trip TripPlan   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  service  UserService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+
+  @@index([tripId])
+  @@index([serviceId])
+  @@map("TripService")
 }
 
 /**
@@ -194,8 +216,8 @@ model UserService {
   reviews   Review[]
   bookmarks Bookmark[]
   bookings  Booking[]
-  tripUnits TripUnit[]
-
+  tripServices TripService[]
+  
   @@index([ownerId])
   @@index([locationId])
   @@map("UserService")
@@ -467,6 +489,9 @@ model Booking {
   updatedAt        DateTime? @updatedAt @map("updated_at")
 
   status String?
+
+  tripUnits TripUnit[]
+
 
   service UserService @relation(fields: [serviceId], references: [id])
   group   Group       @relation(fields: [groupId], references: [id])
