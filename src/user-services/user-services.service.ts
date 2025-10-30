@@ -12,72 +12,99 @@ import { CreateGuideDto } from 'src/guide/dto/create-guide.dto';
 export class UserServicesService {
   constructor(private prisma: PrismaService) {}
 
-  async createHotelService(dto: CreateUserServiceDto, createHotelDto: CreateHotelDto) {
-    try {
-      return await this.prisma.$transaction(async (tx) => {
-        // 1) สร้าง UserService พื้นฐาน
-        const service = await tx.userService.create({
-          data: {
-            // ถ้า schema มี @default(uuid()) ที่ id สามารถละ field id ได้
-            id: dto.id,
-            ownerId: dto.ownerId,
-            locationId: dto.locationId,
-            name: dto.name,
-            description: dto.description,
-            serviceImg: dto.serviceImg,
-            status: dto.status,
-            type: 'hotel', // บังคับให้ชัด
-          },
-        });
+async createHotelService(
+  dto: CreateUserServiceDto,
+  createHotelDto: CreateHotelDto,
+) {
+  // ✅ ป้องกัน undefined + บังคับคีย์ที่ schema ต้องมี
+  if (!dto) throw new BadRequestException('Missing dto');
+  if (!dto.id) throw new BadRequestException('dto.id is required');
+  if (!dto.ownerId) throw new BadRequestException('dto.ownerId is required');
+  if (!dto.name) throw new BadRequestException('dto.name is required');
 
-        // 2) สร้าง Hotel โดยอ้างอิง service ที่เพิ่งสร้าง
-        //    เคส A: มีฟิลด์ FK ชื่อ serviceId ใน model Hotel
-
-        // ถ้า schema ของคุณไม่ได้ใช้ field serviceId แต่ใช้ relation object (เช่นชื่อ relation 'service')
-        // ให้ใช้โค้ดด้านล่างแทน (ลบบล็อกด้านบนออก):
-        
-        const hotel = await tx.hotel.create({
-          data: {
-            name: createHotelDto.name ?? dto.name,
-            type: createHotelDto.type ?? 'hotel',
-            star: createHotelDto.star,
-            description: createHotelDto.description,
-            image: createHotelDto.image,
-            pictures: createHotelDto.pictures,
-            facility: createHotelDto.facility,
-            facilities: createHotelDto.facilities as any,
-            rating: createHotelDto.rating as any,
-            checkIn: createHotelDto.checkIn,
-            checkOut: createHotelDto.checkOut,
-            breakfast: createHotelDto.breakfast,
-            petAllow: createHotelDto.petAllow,
-            contact: createHotelDto.contact,
-            subtopicRatings: createHotelDto.subtopicRatings as any,
-            locationSummary: createHotelDto.locationSummary,
-            nearbyLocations: createHotelDto.nearbyLocations,
-            // เชื่อม relation ด้วย connect แทนการเซ็ต FK ตรง ๆ
-            service: { connect: { id: service.id } },
-          },
-        });
-        return { service, hotel };
-      });
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2002') {
-          throw new ConflictException('service ID already exists');
-        }
-        if (e.code === 'P2003') {
-          // FK ผิด/ไม่เจอ service.id (เช่น schema ไม่ตรง field ที่ใส่)
-          throw new BadRequestException(`Foreign key constraint failed (${e.meta?.constraint ?? 'unknown constraint'})`);
-        }
-        if (e.code === 'P2023') {
-          // UUID ผิดรูปแบบ (ถ้าคอลัมน์เป็น @db.Uuid)
-          throw new BadRequestException('Invalid UUID in id/ownerId/locationId/serviceId');
-        }
-      }
-      throw e;
-    }
+  // ถ้ากำหนดกติกาว่า Hotel.id ต้องเท่ากับ Service.id ให้ตรวจให้ตรง
+  if (createHotelDto?.serviceId && createHotelDto.serviceId !== dto.id) {
+    throw new BadRequestException('createHotelDto.serviceId must equal dto.id');
   }
+
+  try {
+    return await this.prisma.$transaction(async (tx) => {
+      // 1) สร้าง UserService (type = 'hotel')
+      const service = await tx.userService.create({
+        data: {
+          id: dto.id,                    // ถ้า schema คุณไม่มี @default(uuid()) ต้องส่งเสมอ
+          ownerId: dto.ownerId,
+          locationId: dto.locationId,    // ถ้าเป็น optional/nullable อย่าลืมปรับ schema ให้เป็น String?
+          name: dto.name,
+          description: dto.description,
+          serviceImg: dto.serviceImg,
+          status: dto.status,
+          type: 'hotel',
+        },
+      });
+
+      // 2) สร้าง Hotel โดยใช้ PK เดียวกัน (หรือใช้ relation connect หาก schema เป็นคนละ PK)
+      const { serviceId: _dropId, ...payload } = createHotelDto ?? ({} as CreateHotelDto);
+
+      const hotel = await tx.hotel.create({
+        data: {
+          // ✅ ใช้ id เดียวกับ service ตามสัญญา
+          id: service.id,
+
+          name: payload.name ?? dto.name,
+          type: payload.type ?? 'hotel',
+          star: payload.star,
+
+          description: payload.description,
+          image: payload.image,
+          pictures: payload.pictures,
+
+          facility: payload.facility,
+          facilities: payload.facilities as any,     // ถ้าเป็น Json ใน Prisma ใช้ as Prisma.JsonValue แทน
+
+          rating: payload.rating as any,             // ถ้าเป็น Decimal ใส่เป็น string เช่น "4.5"
+
+          checkIn: payload.checkIn,
+          checkOut: payload.checkOut,
+          breakfast: payload.breakfast,
+          petAllow: payload.petAllow,
+
+          contact: payload.contact,                  // ถ้าเป็น Json => Prisma.JsonValue
+
+
+          subtopicRatings: payload.subtopicRatings as any,
+          locationSummary: payload.locationSummary,
+          nearbyLocations: payload.nearbyLocations,
+
+          // 🔁 ถ้า schema คุณ “ไม่ได้แชร์ PK” แต่ใช้ FK/Relation:
+          // service: { connect: { id: service.id } },
+          // หรือถ้าเป็น FK ชื่อ serviceId:
+          // serviceId: service.id,
+        },
+      });
+
+      return { service, hotel };
+    });
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      if (e.code === 'P2002') {
+        // unique constraint (เช่น id ซ้ำ)
+        throw new ConflictException('service/hotel ID already exists');
+      }
+      if (e.code === 'P2003') {
+        // foreign key ผิด (ถ้าใช้ serviceId / relation connect แล้วไม่เจอ)
+        throw new BadRequestException(
+          `Foreign key constraint failed (${(e.meta as any)?.constraint ?? 'unknown constraint'})`,
+        );
+      }
+      if (e.code === 'P2023') {
+        // รูปแบบ UUID/ID ไม่ถูกต้อง
+        throw new BadRequestException('Invalid UUID/ID format in id/ownerId/locationId');
+      }
+    }
+    throw e;
+  }
+}
 
     async createRestaurantService(
     dto: CreateUserServiceDto,
