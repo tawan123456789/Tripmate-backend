@@ -12,6 +12,8 @@ CREATE TABLE "public"."User" (
     "status" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
+    "username" TEXT NOT NULL,
+    "gender" TEXT NOT NULL DEFAULT 'Other',
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("user_id")
 );
@@ -26,6 +28,8 @@ CREATE TABLE "public"."Group" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
     "trip_plans_id" TEXT,
+    "description" TEXT DEFAULT 'No description',
+    "profile_img" TEXT,
 
     CONSTRAINT "Group_pkey" PRIMARY KEY ("group_id")
 );
@@ -61,7 +65,7 @@ CREATE TABLE "public"."TripPlan" (
 CREATE TABLE "public"."TripUnit" (
     "unit_id" TEXT NOT NULL,
     "trip_id" TEXT NOT NULL,
-    "place_id" INTEGER NOT NULL,
+    "place_id" TEXT,
     "time_stamp_start" TIMESTAMP(3) NOT NULL,
     "duration" INTEGER,
     "status" TEXT,
@@ -69,14 +73,28 @@ CREATE TABLE "public"."TripUnit" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
     "deleted_at" TIMESTAMP(3),
+    "service_id" TEXT,
 
     CONSTRAINT "TripUnit_pkey" PRIMARY KEY ("unit_id")
 );
 
 -- CreateTable
+CREATE TABLE "public"."TripService" (
+    "trip_service_id" TEXT NOT NULL,
+    "trip_id" TEXT NOT NULL,
+    "service_id" TEXT NOT NULL,
+    "date_time" TIMESTAMP(6) NOT NULL,
+    "status" TEXT,
+    "created_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(6),
+
+    CONSTRAINT "TripService_pkey" PRIMARY KEY ("trip_service_id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."Place" (
-    "place_id" SERIAL NOT NULL,
-    "location_id" INTEGER,
+    "place_id" TEXT NOT NULL,
+    "location_id" TEXT,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "place_img" TEXT,
@@ -86,7 +104,7 @@ CREATE TABLE "public"."Place" (
 
 -- CreateTable
 CREATE TABLE "public"."Location" (
-    "location_id" SERIAL NOT NULL,
+    "location_id" TEXT NOT NULL,
     "lat" DOUBLE PRECISION NOT NULL,
     "long" DOUBLE PRECISION NOT NULL,
     "name" TEXT NOT NULL,
@@ -109,7 +127,7 @@ CREATE TABLE "public"."Location" (
 CREATE TABLE "public"."UserService" (
     "service_id" TEXT NOT NULL,
     "owner_id" UUID NOT NULL,
-    "location_id" INTEGER,
+    "location_id" TEXT,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "service_img" TEXT,
@@ -128,8 +146,20 @@ CREATE TABLE "public"."Hotel" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "facility" TEXT,
-    "rating" DECIMAL(2,1),
+    "rating" DECIMAL(3,1),
     "image" TEXT,
+    "breakfast" TEXT,
+    "checkIn" TEXT,
+    "checkOut" TEXT,
+    "contact" TEXT,
+    "facilities" JSONB,
+    "location_text" TEXT,
+    "nearby_locations" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "pet_allow" BOOLEAN,
+    "pictures" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "star" INTEGER,
+    "subtopic_ratings" JSONB,
+    "type" TEXT,
 
     CONSTRAINT "Hotel_pkey" PRIMARY KEY ("hotel_id")
 );
@@ -143,19 +173,41 @@ CREATE TABLE "public"."Room" (
     "person_per_room" INTEGER,
     "description" TEXT,
     "image" TEXT,
+    "facilities" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "name" TEXT,
+    "pictures" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "size_sqm" INTEGER,
 
-    CONSTRAINT "Room_pkey" PRIMARY KEY ("room_id")
+    CONSTRAINT "Room_pkey" PRIMARY KEY ("room_id","hotel_id")
 );
 
 -- CreateTable
-CREATE TABLE "public"."Guide" (
-    "guide_id" TEXT NOT NULL,
+CREATE TABLE "public"."Restaurant" (
+    "restaurant_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
+    "menu" TEXT,
     "image" TEXT,
-    "rating" DECIMAL(2,1),
+    "rating" DECIMAL(3,1),
+    "price_level" INTEGER,
+    "contact" TEXT,
+    "contacts" JSONB,
+    "cuisine" TEXT,
+    "dietaryTags" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "facilities" JSONB,
+    "facility" TEXT,
+    "location_text" TEXT,
+    "nearby_locations" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "opening_hours" JSONB,
+    "payment_methods" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "pet_allow" BOOLEAN,
+    "pictures" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "reservation_policy" JSONB,
+    "services" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "subtopic_ratings" JSONB,
+    "type" TEXT,
 
-    CONSTRAINT "Guide_pkey" PRIMARY KEY ("guide_id")
+    CONSTRAINT "Restaurant_pkey" PRIMARY KEY ("restaurant_id")
 );
 
 -- CreateTable
@@ -164,7 +216,22 @@ CREATE TABLE "public"."CarRentalCenter" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "image" TEXT,
-    "rating" DECIMAL(2,1),
+    "rating" DECIMAL(3,1),
+    "branches" JSONB,
+    "contact" TEXT,
+    "contacts" JSONB,
+    "facilities" JSONB,
+    "facility" TEXT,
+    "location_text" TEXT,
+    "nearby_locations" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "opening_hours" JSONB,
+    "payment_methods" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "pickup_dropoff" JSONB,
+    "pictures" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "policies" JSONB,
+    "required_docs" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "subtopic_ratings" JSONB,
+    "type" TEXT,
 
     CONSTRAINT "CarRentalCenter_pkey" PRIMARY KEY ("crc_id")
 );
@@ -178,24 +245,54 @@ CREATE TABLE "public"."Car" (
     "description" TEXT,
     "carseat" INTEGER,
     "image" TEXT,
-    "status" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3),
     "updated_at" TIMESTAMP(3),
-    "deleted_at" TIMESTAMP(3),
+    "availability" JSONB,
+    "brand" TEXT,
+    "currency" TEXT DEFAULT 'THB',
+    "deposit" DECIMAL(10,2),
+    "doors" INTEGER,
+    "features" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "fuelType" TEXT,
+    "insurance" JSONB,
+    "luggage" INTEGER,
+    "mileage_limit_km" INTEGER,
+    "pictures" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "price_per_hour" DECIMAL(10,2),
+    "transmission" TEXT,
+    "year" INTEGER,
 
     CONSTRAINT "Car_pkey" PRIMARY KEY ("car_id")
 );
 
 -- CreateTable
-CREATE TABLE "public"."Restaurant" (
-    "restaurant_id" TEXT NOT NULL,
+CREATE TABLE "public"."Guide" (
+    "guide_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
-    "menu" TEXT,
     "image" TEXT,
-    "rating" DECIMAL(2,1),
+    "rating" DECIMAL(3,1),
+    "pay" DECIMAL(65,30),
+    "availability" JSONB,
+    "contact" TEXT,
+    "contacts" JSONB,
+    "currency" TEXT DEFAULT 'THB',
+    "day_rate" DECIMAL(10,2),
+    "experience_years" INTEGER,
+    "hourly_rate" DECIMAL(10,2),
+    "languages" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "license_id" TEXT,
+    "location_text" TEXT,
+    "nearby_locations" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "overtime_rate" DECIMAL(10,2),
+    "pictures" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "policies" JSONB,
+    "regionsCovered" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "specialties" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "subtopic_ratings" JSONB,
+    "verified" BOOLEAN DEFAULT false,
 
-    CONSTRAINT "Restaurant_pkey" PRIMARY KEY ("restaurant_id")
+    CONSTRAINT "Guide_pkey" PRIMARY KEY ("guide_id")
 );
 
 -- CreateTable
@@ -211,7 +308,7 @@ CREATE TABLE "public"."Table" (
     "updated_at" TIMESTAMP(3),
     "deleted_at" TIMESTAMP(3),
 
-    CONSTRAINT "Table_pkey" PRIMARY KEY ("table_id")
+    CONSTRAINT "Table_pkey" PRIMARY KEY ("table_id","restaurant_id")
 );
 
 -- CreateTable
@@ -274,6 +371,9 @@ CREATE TABLE "public"."Discount" (
 CREATE UNIQUE INDEX "User_email_key" ON "public"."User"("email");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_username_key" ON "public"."User"("username");
+
+-- CreateIndex
 CREATE INDEX "Group_owner_id_idx" ON "public"."Group"("owner_id");
 
 -- CreateIndex
@@ -284,6 +384,12 @@ CREATE INDEX "TripUnit_trip_id_idx" ON "public"."TripUnit"("trip_id");
 
 -- CreateIndex
 CREATE INDEX "TripUnit_place_id_idx" ON "public"."TripUnit"("place_id");
+
+-- CreateIndex
+CREATE INDEX "idx_tripservice_service_id" ON "public"."TripService"("service_id");
+
+-- CreateIndex
+CREATE INDEX "idx_tripservice_trip_id" ON "public"."TripService"("trip_id");
 
 -- CreateIndex
 CREATE INDEX "Place_location_id_idx" ON "public"."Place"("location_id");
@@ -340,19 +446,28 @@ ALTER TABLE "public"."UserJoinGroup" ADD CONSTRAINT "UserJoinGroup_user_id_fkey"
 ALTER TABLE "public"."TripPlan" ADD CONSTRAINT "TripPlan_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "public"."User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "public"."TripUnit" ADD CONSTRAINT "TripUnit_place_id_fkey" FOREIGN KEY ("place_id") REFERENCES "public"."Place"("place_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."TripUnit" ADD CONSTRAINT "TripUnit_service_id_fkey" FOREIGN KEY ("service_id") REFERENCES "public"."Booking"("booking_id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "public"."TripUnit" ADD CONSTRAINT "TripUnit_trip_id_fkey" FOREIGN KEY ("trip_id") REFERENCES "public"."TripPlan"("trip_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."TripUnit" ADD CONSTRAINT "TripUnit_place_id_fkey" FOREIGN KEY ("place_id") REFERENCES "public"."Place"("place_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."TripService" ADD CONSTRAINT "fk_tripservice_service" FOREIGN KEY ("service_id") REFERENCES "public"."UserService"("service_id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "public"."TripService" ADD CONSTRAINT "fk_tripservice_trip" FOREIGN KEY ("trip_id") REFERENCES "public"."TripPlan"("trip_id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "public"."Place" ADD CONSTRAINT "Place_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "public"."Location"("location_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."UserService" ADD CONSTRAINT "UserService_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "public"."User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."UserService" ADD CONSTRAINT "UserService_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "public"."Location"("location_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."UserService" ADD CONSTRAINT "UserService_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "public"."Location"("location_id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."UserService" ADD CONSTRAINT "UserService_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "public"."User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Hotel" ADD CONSTRAINT "Hotel_hotel_id_fkey" FOREIGN KEY ("hotel_id") REFERENCES "public"."UserService"("service_id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -361,7 +476,7 @@ ALTER TABLE "public"."Hotel" ADD CONSTRAINT "Hotel_hotel_id_fkey" FOREIGN KEY ("
 ALTER TABLE "public"."Room" ADD CONSTRAINT "Room_hotel_id_fkey" FOREIGN KEY ("hotel_id") REFERENCES "public"."Hotel"("hotel_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Guide" ADD CONSTRAINT "Guide_guide_id_fkey" FOREIGN KEY ("guide_id") REFERENCES "public"."UserService"("service_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."Restaurant" ADD CONSTRAINT "Restaurant_restaurant_id_fkey" FOREIGN KEY ("restaurant_id") REFERENCES "public"."UserService"("service_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."CarRentalCenter" ADD CONSTRAINT "CarRentalCenter_crc_id_fkey" FOREIGN KEY ("crc_id") REFERENCES "public"."UserService"("service_id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -370,7 +485,7 @@ ALTER TABLE "public"."CarRentalCenter" ADD CONSTRAINT "CarRentalCenter_crc_id_fk
 ALTER TABLE "public"."Car" ADD CONSTRAINT "Car_crc_id_fkey" FOREIGN KEY ("crc_id") REFERENCES "public"."CarRentalCenter"("crc_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Restaurant" ADD CONSTRAINT "Restaurant_restaurant_id_fkey" FOREIGN KEY ("restaurant_id") REFERENCES "public"."UserService"("service_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."Guide" ADD CONSTRAINT "Guide_guide_id_fkey" FOREIGN KEY ("guide_id") REFERENCES "public"."UserService"("service_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Table" ADD CONSTRAINT "Table_restaurant_id_fkey" FOREIGN KEY ("restaurant_id") REFERENCES "public"."Restaurant"("restaurant_id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -388,13 +503,13 @@ ALTER TABLE "public"."Bookmark" ADD CONSTRAINT "Bookmark_service_id_fkey" FOREIG
 ALTER TABLE "public"."Bookmark" ADD CONSTRAINT "Bookmark_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."User"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Booking" ADD CONSTRAINT "Booking_service_id_fkey" FOREIGN KEY ("service_id") REFERENCES "public"."UserService"("service_id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "public"."Booking" ADD CONSTRAINT "Booking_group_id_fkey" FOREIGN KEY ("group_id") REFERENCES "public"."Group"("group_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Discount" ADD CONSTRAINT "Discount_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "public"."User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."Booking" ADD CONSTRAINT "Booking_service_id_fkey" FOREIGN KEY ("service_id") REFERENCES "public"."UserService"("service_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Discount" ADD CONSTRAINT "Discount_maker_id_fkey" FOREIGN KEY ("maker_id") REFERENCES "public"."User"("user_id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Discount" ADD CONSTRAINT "Discount_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "public"."User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
