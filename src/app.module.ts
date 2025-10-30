@@ -24,6 +24,7 @@ import { UserJoinGroupModule } from './user_join_group/user_join_group.module';
 import { TripPlanModule } from './trip_plan/trip_plan.module';
 import { PlanUnitModule } from './plan_unit/plan_unit.module';
 import { SearchModule } from './search_service/search.module';
+import { BookingModule } from './booking/booking.module';
 
 @Module({
   imports: [
@@ -54,8 +55,8 @@ import { SearchModule } from './search_service/search.module';
     TripPlanModule,
     PlanUnitModule,
     SearchModule,
-    
-    
+    BookingModule,
+
   ],
   controllers: [AppController],
   providers: [AppService],
