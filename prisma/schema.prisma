@@ -8,28 +8,34 @@ datasource db {
 }
 
 model User {
-  id             String          @id @default(uuid()) @map("user_id") @db.Uuid
-  fname          String
-  lname          String
-  birthDate      DateTime?       @map("birth_date") @db.Date
-  role           String?
-  email          String          @unique
-  password       String
-  profileImg     String?         @map("profile_img")
-  phone          String?
-  status         String?
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime?       @updatedAt @map("updated_at")
-  username       String          @unique
-  gender         String          @default("Other")
-  bookmarks      Bookmark[]
-  discountsMade  Discount[]      @relation("DiscountMaker")
-  discounts      Discount[]      @relation("DiscountOwner")
-  ownedGroups    Group[]         @relation("GroupOwner")
-  reviews        Review[]
-  ownedTripPlans TripPlan[]      @relation("TripPlanOwner")
-  memberOf       UserJoinGroup[]
-  services       UserService[]   @relation("ServiceOwner")
+  id                 String            @id @default(uuid()) @db.Uuid @map("user_id")
+  username           String            @unique
+  gender             String            @default("Other")       
+  fname              String
+  lname              String
+  birthDate          DateTime?         @db.Date @map("birth_date")
+  role               String?
+  email              String            @unique
+  password           String
+  profileImg         String?           @map("profile_img")
+  phone              String?
+  status             String?
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime?         @updatedAt     @map("updated_at")
+
+  // back-relations
+  ownedGroups        Group[]           @relation("GroupOwner")
+  memberOf           UserJoinGroup[]
+  services           UserService[]     @relation("ServiceOwner")
+  ownedTripPlans     TripPlan[]        @relation("TripPlanOwner")
+  discounts          Discount[]         @relation("DiscountOwner")
+  reviews            Review[]
+  bookmarks          Bookmark[]
+  discountsMade      Discount[]        @relation("DiscountMaker")
+  // hotels             Hotel[]
+  // guides             Guide[]
+  // carCenters         CarRentalCenter[]
+  // restaurants        Restaurant[]
 
   @@map("User")
 }
@@ -215,12 +221,11 @@ model Guide {
   id          String      @id @map("guide_id")
   name        String
   description String?
-  image       String?
-  rating      Decimal?    @db.Decimal(2, 1)
+  image      String?
+  rating      Decimal? @db.Decimal(2,1)
+  pay       Decimal?
   language    String?
-  pay         Decimal?
-  service     UserService @relation(fields: [id], references: [id], onDelete: Cascade)
-
+  service     UserService @relation(fields: [id],     references: [id], onDelete: Cascade)
   @@map("Guide")
 }
 
@@ -229,7 +234,9 @@ model CarRentalCenter {
   name        String
   description String?
   image       String?
-  rating      Decimal?    @db.Decimal(2, 1)
+  rating      Decimal? @db.Decimal(2,1)
+
+  service     UserService @relation(fields: [id],     references: [id], onDelete: Cascade)
   cars        Car[]
   service     UserService @relation(fields: [id], references: [id], onDelete: Cascade)
 
@@ -258,11 +265,11 @@ model Restaurant {
   id          String      @id @map("restaurant_id")
   name        String
   description String?
-  menu        String?     @map("menu")
+  menu        String?   @map("menu")
   image       String?
-  rating      Decimal?
-  price_level Int?
-  service     UserService @relation(fields: [id], references: [id], onDelete: Cascade)
+  rating      Decimal? 
+  priceLevel  Int?     @map("price_level")
+  service     UserService @relation(fields: [id],     references: [id], onDelete: Cascade)
   tables      Table[]
 
   @@map("Restaurant")
