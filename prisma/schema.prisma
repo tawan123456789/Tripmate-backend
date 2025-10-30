@@ -216,7 +216,7 @@ model Hotel {
   image           String? // cover (compat เดิม)
   pictures        String[]    @default([]) // ถูก: TEXT[] พร้อมค่าเริ่มต้น []      // ~5-10 รูป
   facility        String? // compat เดิม: ;wifi;pool;...
-  facilities      Json? // โครง object แยกหมวด (ดูตัวอย่างด้านล่าง)
+  facilities      Json?   // โครง object แยกหมวด (ดูตัวอย่างด้านล่าง)
   rating          Decimal?    @db.Decimal(3, 1) // 0..10 ทศนิยม
   checkIn         String?
   checkOut        String?
@@ -227,7 +227,6 @@ model Hotel {
   locationSummary String?     @map("location_text")
   nearbyLocations String[]    @default([]) @map("nearby_locations") // ["Place A - 0.5 km", "Place B - 1 km"]
   service         UserService @relation(fields: [id], references: [id], onDelete: Cascade)
-  // ความสัมพันธ์ย่อย
   rooms           Room[]
 
   @@map("Hotel")
@@ -245,7 +244,7 @@ model Room {
   sizeSqm       Int?     @map("size_sqm") // ขนาดห้อง (ตร.ม.)
   facilities    String[] @default([]) @map("facilities")
   pricePerNight Decimal? @map("price_per_night") @db.Decimal(10, 2)
-  // ความสัมพันธ์
+ 
   hotel         Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
 
   @@id([id, hotelId])
@@ -256,21 +255,21 @@ model Room {
 model Restaurant {
   id                String      @id @map("restaurant_id")
   name              String
-  type              String? // เช่น "restaurant" | "cafe" | "bar" | ...
-  cuisine           String? // เช่น "Thai" | "Japanese" | ...
+  type              String?     // เช่น "restaurant" | "cafe" | "bar" | ...
+  cuisine           String?     // เช่น "Thai" | "Japanese" | ...
   priceLevel        Int?        @map("price_level") // 1..5 (ช่วงราคาโดยรวม)
   description       String?
-  menu              String? // PDF URL หรือข้อความ (compat เดิม)
-  image             String? // compat เดิม (cover เดี่ยว)
+  menu              String?     // PDF URL หรือข้อความ (compat เดิม)
+  image             String?     // compat เดิม (cover เดี่ยว)
   pictures          String[]    @default([]) // TEXT[]: รูปหลายใบ (แนะนำ ~5-10)
-  facility          String? // compat เดิม: ;wifi;parking;...
-  facilities        Json? // โครง object แยกหมวด (ตัวอย่างด้านล่าง)
+  facility          String?     // compat เดิม: ;wifi;parking;...
+  facilities        Json?       // โครง object แยกหมวด (ตัวอย่างด้านล่าง)
   rating            Decimal?    @db.Decimal(3, 1) // 0..10 ทศนิยม (แนวเดียวกับ Hotel)
   subtopicRatings   Json?       @map("subtopic_ratings") // {taste, cleanliness, service, value, ambience, ...}
   locationSummary   String?     @map("location_text")
   nearbyLocations   String[]    @default([]) @map("nearby_locations") // ["Landmark A - 200 m", "BTS X - 0.6 km"]
-  contact           String? // อีเมล/โทร/ไลน์/เว็บ (string รวม หรือแยกเป็น JSON ด้านล่างก็ได้)
-  contacts          Json? // {phone, email, website, line, facebook, instagram, ...}
+  contact           String?     // อีเมล/โทร/ไลน์/เว็บ (string รวม หรือแยกเป็น JSON ด้านล่างก็ได้)
+  contacts          Json?       // {phone, email, website, line, facebook, instagram, ...}
   openingHours      Json?       @map("opening_hours") // [{day: "Mon", open: "10:00", close: "21:00"}, ...]
   reservationPolicy Json?       @map("reservation_policy") // {required?: bool, deposit?: number, channels?: [...]}
   petAllow          Boolean?    @map("pet_allow")
