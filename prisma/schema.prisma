@@ -236,7 +236,6 @@ model CarRentalCenter {
   image       String?
   rating      Decimal? @db.Decimal(2,1)
 
-  service     UserService @relation(fields: [id],     references: [id], onDelete: Cascade)
   cars        Car[]
   service     UserService @relation(fields: [id], references: [id], onDelete: Cascade)
 
