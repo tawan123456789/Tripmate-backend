@@ -14,22 +14,22 @@ export class HotelService {
           data: {
             id: dto.serviceId,
             name: dto.name,
-            type: dto.type,
-            star: dto.star,
+            // type: dto.type,
+            // star: dto.star,
             description: dto.description,
             image: dto.image,
-            pictures: dto.pictures,               // [] ถ้าไม่ส่ง Prisma จะใส่ default
+            // pictures: dto.pictures,               // [] ถ้าไม่ส่ง Prisma จะใส่ default
             facility: dto.facility,
-            facilities: dto.facilities as any,    // Json
+            // facilities: dto.facilities as any,    // Json
             rating: dto.rating != null ? new Prisma.Decimal(dto.rating) : null,
-            checkIn: dto.checkIn,
-            checkOut: dto.checkOut,
-            breakfast: dto.breakfast,
-            petAllow: dto.petAllow,
-            contact: dto.contact,
-            subtopicRatings: dto.subtopicRatings as any, // Json
-            locationSummary: dto.locationSummary,
-            nearbyLocations: dto.nearbyLocations, // [] by default
+            // checkIn: dto.checkIn,
+            // checkOut: dto.checkOut,
+            // breakfast: dto.breakfast,
+            // petAllow: dto.petAllow,
+            // contact: dto.contact,
+            // subtopicRatings: dto.subtopicRatings as any, // Json
+            // locationSummary: dto.locationSummary,
+            // nearbyLocations: dto.nearbyLocations, // [] by default
                 },
         });
       } catch (e) {
