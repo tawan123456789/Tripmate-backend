@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {
@@ -88,23 +89,21 @@ model TripPlan {
 }
 
 model TripUnit {
-  id             String       @id @map("unit_id")
-  tripId         String       @map("trip_id")
-  placeId        String?      @map("place_id")
-  timeStampStart DateTime     @map("time_stamp_start")
+  id             String    @id @map("unit_id")
+  tripId         String    @map("trip_id")
+  placeId        String?   @map("place_id")
+  timeStampStart DateTime  @map("time_stamp_start")
   duration       Int?
   status         String?
   note           String?
-  createdAt      DateTime     @default(now()) @map("created_at")
-  updatedAt      DateTime?    @updatedAt @map("updated_at")
-  deletedAt      DateTime?    @map("deleted_at")
-  serviceId      String?      @map("service_id")
-  place          Place?       @relation(fields: [placeId], references: [id], onDelete: Restrict)
-  service        Booking? @relation(fields: [serviceId], references: [id])
-  trip           TripPlan     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime? @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+  serviceId      String?   @map("service_id")
+  place          Place?    @relation(fields: [placeId], references: [id])
+  service        Booking?  @relation(fields: [serviceId], references: [id])
+  trip           TripPlan  @relation(fields: [tripId], references: [id], onDelete: Cascade)
 
-
-  
   @@index([tripId])
   @@index([placeId])
   @@map("TripUnit")
@@ -114,15 +113,15 @@ model TripService {
   id        String      @id @map("trip_service_id")
   tripId    String      @map("trip_id")
   serviceId String      @map("service_id")
-  date      DateTime    @map("date_time") @db.Timestamp(6)
+  date      DateTime    @map("date_time")
   status    String?
-  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt DateTime?   @updatedAt @map("updated_at") @db.Timestamp(6)
-  service   UserService @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_tripservice_service")
-  trip      TripPlan    @relation(fields: [tripId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_tripservice_trip")
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime?   @updatedAt @map("updated_at")
+  service   UserService @relation(fields: [serviceId], references: [id], onDelete: Cascade, map: "fk_tripservice_service")
+  trip      TripPlan    @relation(fields: [tripId], references: [id], onDelete: Cascade, map: "fk_tripservice_trip")
 
-  @@index([serviceId], map: "idx_tripservice_service_id")
-  @@index([tripId], map: "idx_tripservice_trip_id")
+  @@index([serviceId])
+  @@index([tripId])
   @@map("TripService")
 }
 
@@ -181,7 +180,6 @@ model UserService {
   restaurant      Restaurant?
   reviews         Review[]
   tripServices    TripService[]
-
   location        Location?        @relation("ServiceLoc", fields: [locationId], references: [id])
   owner           User             @relation("ServiceOwner", fields: [ownerId], references: [id])
 
@@ -410,20 +408,20 @@ model Bookmark {
 }
 
 model Booking {
-  id               String    @id @default(uuid())@map("booking_id")
-  serviceId        String    @map("service_id")
-  groupId          String    @map("group_id")
-  startBookingDate DateTime  @map("start_booking_date")
-  endBookingDate   DateTime? @map("end_booking_date")
+  id               String      @id @default(uuid()) @map("booking_id")
+  serviceId        String      @map("service_id")
+  groupId          String      @map("group_id")
+  startBookingDate DateTime    @map("start_booking_date")
+  endBookingDate   DateTime?   @map("end_booking_date")
   note             String?
   createdAt        DateTime    @default(now()) @map("created_at")
   updatedAt        DateTime?   @updatedAt @map("updated_at")
   status           String?
-  price            Decimal?  @db.Decimal(10, 2)
+  price            Decimal?     @db.Decimal(10, 2)
   group            Group       @relation(fields: [groupId], references: [id])
   service          UserService @relation(fields: [serviceId], references: [id])
+  tripUnits        TripUnit[]
 
-  tripUnits       TripUnit[]
   @@index([serviceId])
   @@index([groupId])
   @@map("Booking")
