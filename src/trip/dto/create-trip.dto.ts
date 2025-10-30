@@ -16,17 +16,15 @@ import { Type } from 'class-transformer';
 export class CreateTripDto {}
 
 export enum TripEventType {
-  VISIT = 'visit',
-  RESTAURANT_BOOKING = 'restaurant_booking',
-  TRANSPORT = 'transport',
-  NOTE = 'note',
+  Place = 'place',
+  Service = 'service',
 }
 
 // ---- Trip Event DTO ----
 export class CreateTripEventDto {
   @IsOptional()
   @IsEnum(TripEventType)
-  type?: TripEventType = TripEventType.VISIT;
+  type?: TripEventType = TripEventType.Place;
 
   @IsOptional()
   @IsUUID()

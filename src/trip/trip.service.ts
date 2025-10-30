@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { v4 as uuidv4 } from 'uuid';
 import { randomAlphanumeric } from '../utils/random.util';
-import { CreateTripPlanDto } from './dto/create-trip.dto';
+import { CreateTripPlanDto, TripEventType } from './dto/create-trip.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
 
 @Injectable()
@@ -15,7 +15,10 @@ export class TripService {
       throw new BadRequestException('ownerId is required');
     }
 
-    const tripId = `${randomAlphanumeric(8)}`;
+    const tripId = `t_${randomAlphanumeric(8)}`;
+    if (!createTripDto.status){
+      createTripDto.status = 'private';
+    }
 
     // prepare trip data
     const tripData: any = {
@@ -32,6 +35,8 @@ export class TripService {
     // create trip plan
     const trip = await this.prisma.tripPlan.create({ data: tripData });
 
+
+    
     // collect trip units from days/events
     const units: Array<any> = [];
     if (Array.isArray(createTripDto.days)) {
@@ -40,15 +45,33 @@ export class TripService {
         for (const ev of day.events) {
           // only create a TripUnit when placeId is provided (model requires placeId)
           if (!ev.placeId) continue;
-          units.push({
-            id: `${randomAlphanumeric(10)}`,
+          // create unit for visit events (TripEventType.VISIT)
+          if (ev.type == "place"){
+            units.push({
+            id: `ut_${randomAlphanumeric(10)}`,
             tripId: tripId,
+            serviceId: null,
             placeId: ev.placeId,
             timeStampStart: new Date(ev.startAt),
             duration: ev.durationMinutes,
             status: ev.status,
             note: ev.note,
-          });
+          })
+        }
+          else if(ev.type == "service"){
+            units.push({
+              id: `ut_${randomAlphanumeric(10)}`,
+              tripId: tripId,
+              serviceId: ev.placeId,
+              placeId: null,
+              timeStampStart: new Date(ev.startAt),
+              duration: ev.durationMinutes,
+              status: ev.status,
+              note: ev.note,
+            });
+          
+          }
+;
         }
       }
     }

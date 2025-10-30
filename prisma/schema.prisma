@@ -104,7 +104,7 @@ model TripPlan {
 model TripUnit {
   id             String    @id @map("unit_id")
   tripId         String    @map("trip_id")
-  placeId        String    @map("place_id")
+  placeId        String?    @map("place_id")
   serviceId      String?   @map("service_id")
   timeStampStart DateTime  @map("time_stamp_start")
   duration       Int?
@@ -116,8 +116,8 @@ model TripUnit {
 
 
   trip  TripPlan @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  place Place    @relation(fields: [placeId], references: [id])
-  service UserService? @relation(fields: [serviceId], references: [id])
+  place Place?    @relation(fields: [placeId], references: [id])
+  service Booking? @relation(fields: [serviceId], references: [id])
 
   @@index([tripId])
   @@index([placeId])
@@ -194,8 +194,7 @@ model UserService {
   reviews   Review[]
   bookmarks Bookmark[]
   bookings  Booking[]
-  tripUnits TripUnit[]
-
+  
   @@index([ownerId])
   @@index([locationId])
   @@map("UserService")
@@ -468,6 +467,9 @@ model Booking {
   updatedAt        DateTime? @updatedAt @map("updated_at")
 
   status String?
+
+  tripUnits TripUnit[]
+
 
   service UserService @relation(fields: [serviceId], references: [id])
   group   Group       @relation(fields: [groupId], references: [id])

@@ -1,0 +1,2 @@
+-- This migration marks TripUnit.place_id as nullable; SQL applied manually.
+-- No-op migration file to record change in migration history.
