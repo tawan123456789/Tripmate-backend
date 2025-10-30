@@ -22,10 +22,10 @@ export class RoomController {
     return this.roomService.findOne(id,hotel_id);
   }
 
-  @Patch(':id/:hotel_id')
-  update(@Param('id') id: string,@Param('hotel_id') hotel_id: string, @Body() updateRoomDto: UpdateRoomDto) {
-    return this.roomService.update(id,hotel_id, updateRoomDto);
-  }
+  // @Patch(':id/:hotel_id')
+  // update(@Param('id') id: string,@Param('hotel_id') hotel_id: string, @Body() updateRoomDto: UpdateRoomDto) {
+  //   return this.roomService.update(id,hotel_id, updateRoomDto);
+  // }
 
   @Delete(':id/:hotel_id')
   remove(@Param('id') id: string,

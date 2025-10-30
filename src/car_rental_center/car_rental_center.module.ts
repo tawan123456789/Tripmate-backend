@@ -5,5 +5,6 @@ import { CarRentalCenterController } from './car_rental_center.controller';
 @Module({
   controllers: [CarRentalCenterController],
   providers: [CarRentalCenterService],
+  exports: [CarRentalCenterService],
 })
 export class CarRentalCenterModule {}

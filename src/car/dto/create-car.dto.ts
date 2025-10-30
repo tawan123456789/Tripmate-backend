@@ -1,27 +1,34 @@
+import { IsArray, IsDecimal, IsInt, IsOptional, IsString } from 'class-validator';
+
 export class CreateCarDto {
-    id: string;
-    crcId: string;
-    pricePerDay?: number
-    model?: string;
-    description?: string
-    carseat?: number;
-    image?: string
+  @IsString() id!: string;
+  @IsString() crcId!: string;
+
+  @IsOptional() @IsString() brand?: string;
+  @IsOptional() @IsString() model?: string;
+  @IsOptional() @IsInt() year?: number;
+
+  @IsOptional() @IsString() transmission?: string; // "AT"/"MT"
+  @IsOptional() @IsInt() seats?: number;
+  @IsOptional() @IsInt() doors?: number;
+  @IsOptional() @IsInt() luggage?: number;
+
+  @IsOptional() @IsArray() @IsString({ each: true }) pictures?: string[];
+  @IsOptional() @IsString() image?: string;
+
+  @IsOptional() @IsString() fuelType?: string;
+
+  @IsOptional() @IsInt() mileageLimitKm?: number;
+
+  @IsOptional() @IsDecimal({ decimal_digits: '1,2' }) deposit?: string;
+  @IsOptional() @IsDecimal({ decimal_digits: '1,2' }) pricePerDay?: string;
+  @IsOptional() @IsDecimal({ decimal_digits: '1,2' }) pricePerHour?: string;
+
+  @IsOptional() @IsString() currency?: string;
+
+  @IsOptional() @IsArray() @IsString({ each: true }) features?: string[];
+
+  /** insurance / availability เป็น JSON อิสระ — ถ้าต้อง strict ค่อยแตก DTO ภายหลัง */
+  @IsOptional() insurance?: Record<string, any>;
+  @IsOptional() availability?: Record<string, any>;
 }
-// model Car {
-//   id           String     @id @map("car_id")
-//   crcId        String    @map("crc_id")
-//   pricePerDay  Decimal? @db.Decimal(10,2) @map("price_per_day")
-//   model        String?
-//   description  String?
-//   carseat      Int?
-//   image        String?
-//   status       String?
-//   createdAt    DateTime  @default(now()) @map("created_at")
-//   updatedAt    DateTime? @updatedAt     @map("updated_at")
-//   deletedAt    DateTime?               @map("deleted_at")
-
-//   center CarRentalCenter @relation(fields: [crcId], references: [id], onDelete: Cascade)
-
-//   @@index([crcId])
-//   @@map("Car")
-// }

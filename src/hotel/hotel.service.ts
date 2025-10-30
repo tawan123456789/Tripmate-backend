@@ -12,12 +12,25 @@ export class HotelService {
       try {
         return await this.prisma.hotel.create({
           data: {
-            id: dto.id,
+            id: dto.serviceId,
             name: dto.name,
+            type: dto.type,
+            star: dto.star,
             description: dto.description,
-            facility: dto.facility,
             image: dto.image,
-          },
+            pictures: dto.pictures,               // [] ถ้าไม่ส่ง Prisma จะใส่ default
+            facility: dto.facility,
+            facilities: dto.facilities as any,    // Json
+            rating: dto.rating != null ? new Prisma.Decimal(dto.rating) : null,
+            checkIn: dto.checkIn,
+            checkOut: dto.checkOut,
+            breakfast: dto.breakfast,
+            petAllow: dto.petAllow,
+            contact: dto.contact,
+            subtopicRatings: dto.subtopicRatings as any, // Json
+            locationSummary: dto.locationSummary,
+            nearbyLocations: dto.nearbyLocations, // [] by default
+                },
         });
       } catch (e) {
         if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
@@ -37,26 +50,26 @@ export class HotelService {
 
   async findOne(id: string) {
     const location = await this.prisma.hotel.findUnique({ where: { id } });
-        if (!location) throw new NotFoundException('Location not found');
+        if (!location) throw new NotFoundException('Hotel not found');
         return location;
   }
 
-  async update(id: string, dto: UpdateHotelDto) {
-    const existing = await this.prisma.hotel.findUnique({ where: { id } });
-        if (!existing) {
-            throw new NotFoundException('Location not found');
-        }
-        return this.prisma.hotel.update({
-            where: { id },
-            data: {
-              id: dto.id,
-              name: dto.name,
-              description: dto.description,
-              facility: dto.facility,
-              image: dto.image,
-          },
-        });
-  }
+  // async update(id: string, dto: UpdateHotelDto) {
+  //   const existing = await this.prisma.hotel.findUnique({ where: { id } });
+  //       if (!existing) {
+  //           throw new NotFoundException('Hotel not found');
+  //       }
+  //       return this.prisma.hotel.update({
+  //           where: { id },
+  //           data: {
+  //             id: dto.id,
+  //             name: dto.name,
+  //             description: dto.description,
+  //             facility: dto.facility,
+  //             image: dto.image,
+  //         },
+  //       });
+  // }
 
   async remove(id: string) {
     try {

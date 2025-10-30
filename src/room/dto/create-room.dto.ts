@@ -1,25 +1,42 @@
+import { IsArray, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { Transform } from 'class-transformer';
+
+const toStringArray = (v: any) => {
+  if (v == null || v === '') return undefined;
+  if (Array.isArray(v)) return v.map(String);
+  return String(v).split(',').map(s => s.trim()).filter(Boolean);
+};
+
 export class CreateRoomDto {
-    id: string;
-    hotelId: string;
-    pricePerNight?: number;
-    bedType?: string;
-    personPerRoom?: number;
-    description?: string;
-    image?: string;
+  @IsOptional() @IsString()
+  name?: string;
+
+  hotelId!: string; // ต้องระบุว่าเป็นของโรงแรมไหน
+
+  @IsOptional() @IsArray() @IsString({ each: true })
+  @Transform(({ value }) => toStringArray(value))
+  pictures?: string[]; // Prisma default = []
+
+  @IsOptional() @IsString()
+  description?: string;
+
+  @IsOptional() @IsString()
+  image?: string; // legacy
+
+  @IsOptional() @IsString()
+  bedType?: string;
+
+  @IsOptional() @IsInt() @Min(1)
+  personPerRoom?: number;
+
+  @IsOptional() @IsInt() @Min(0)
+  sizeSqm?: number;
+
+  @IsOptional() @IsArray() @IsString({ each: true })
+  @Transform(({ value }) => toStringArray(value))
+  facilities?: string[]; // Prisma default = []
+
+  @IsOptional() @IsNumber() @Min(0)
+  @Transform(({ value }) => (value === '' || value == null ? undefined : Number(value)))
+  pricePerNight?: number; // map → Decimal(10,2)
 }
-
-
-// model Room {
-//   id             String     @id @map("room_id")
-//   hotelId        String     @map("hotel_id")
-//   pricePerNight  Decimal? @db.Decimal(10,2) @map("price_per_night")
-//   bedType        String?  @map("bed_type")
-//   personPerRoom  Int?     @map("person_per_room")
-//   description    String?
-//   image          String?
-
-//   hotel  Hotel @relation(fields: [hotelId], references: [id], onDelete: Cascade)
-
-//   @@index([hotelId])
-//   @@map("Room")
-// }
