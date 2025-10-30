@@ -1,2 +1,4 @@
--- This migration marks TripUnit.place_id as nullable; SQL applied manually.
--- No-op migration file to record change in migration history.
+```sql
+-- This migration originally recorded a manual DB change (TripUnit.place_id made nullable).
+-- Left intentionally empty / no-op so that migrate can run cleanly against the shadow DB.
+
