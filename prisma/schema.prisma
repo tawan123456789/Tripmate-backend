@@ -100,9 +100,11 @@ model TripUnit {
   deletedAt      DateTime?    @map("deleted_at")
   serviceId      String?      @map("service_id")
   place          Place?       @relation(fields: [placeId], references: [id], onDelete: Restrict)
-  service        UserService? @relation(fields: [serviceId], references: [id])
+  service        Booking? @relation(fields: [serviceId], references: [id])
   trip           TripPlan     @relation(fields: [tripId], references: [id], onDelete: Cascade)
 
+
+  
   @@index([tripId])
   @@index([placeId])
   @@map("TripUnit")
@@ -179,7 +181,7 @@ model UserService {
   restaurant      Restaurant?
   reviews         Review[]
   tripServices    TripService[]
-  tripUnits       TripUnit[]
+
   location        Location?        @relation("ServiceLoc", fields: [locationId], references: [id])
   owner           User             @relation("ServiceOwner", fields: [ownerId], references: [id])
 
@@ -420,6 +422,7 @@ model Booking {
   group            Group       @relation(fields: [groupId], references: [id])
   service          UserService @relation(fields: [serviceId], references: [id])
 
+  tripUnits       TripUnit[]
   @@index([serviceId])
   @@index([groupId])
   @@map("Booking")
