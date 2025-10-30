@@ -42,6 +42,27 @@ services:
     command: server --address ":9000" --console-address ":9001" /data
     restart: always
 
+
+
+  prisma-studio:
+    image: node:20-alpine
+    working_dir: /app
+    environment:
+      DATABASE_URL: "postgresql://tripmate:supersecret@161.246.5.236:5432/tripmate?schema=public"
+    command: >
+      sh -lc "
+        npm init -y &&
+        npm i -D prisma &&
+        npx prisma db pull &&
+        npx prisma studio --port 5555 --hostname 0.0.0.0
+      "
+    ports:
+      - "127.0.0.1:5555:5555"
+    volumes:
+      - ./prisma:/app/prisma
+    restart: unless-stopped
+
+    
 volumes:
   db_data:
   minio_data:
