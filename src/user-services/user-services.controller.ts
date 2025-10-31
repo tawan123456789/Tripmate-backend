@@ -6,22 +6,33 @@ import { CreateHotelDto } from 'src/hotel/dto/create-hotel.dto';
 import { CreateRestaurantDto } from 'src/restaurant/dto/create-restaurant.dto';
 import { CreateCarRentalCenterDto } from 'src/car_rental_center/dto/create-car_rental_center.dto';
 import { CreateGuideDto } from 'src/guide/dto/create-guide.dto';
+import { ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 class CreateRestaurantRequest {
+  @ValidateNested() @Type(() => CreateUserServiceDto)
   dto!: CreateUserServiceDto;
+  @ValidateNested() @Type(() => CreateRestaurantDto)
   createRestaurantDto!: CreateRestaurantDto;
 }
 
-class CreateHotelRequest {
+export class CreateHotelRequest {
+  @ValidateNested() @Type(() => CreateUserServiceDto)
   dto!: CreateUserServiceDto;
+
+  @ValidateNested() @Type(() => CreateHotelDto)
   createHotelDto!: CreateHotelDto;
 }
 
 class CreateCarRentalRequest {
+  @ValidateNested() @Type(() => CreateUserServiceDto)
   dto!: CreateUserServiceDto;
+  @ValidateNested() @Type(() => CreateCarRentalCenterDto)
   createCarRentalCenterDto!: CreateCarRentalCenterDto;
 }
 class CreateGuideRequest {
+  @ValidateNested() @Type(() => CreateUserServiceDto)
   dto!: CreateUserServiceDto;
+  @ValidateNested() @Type(() => CreateGuideDto)
   createGuideDto!: CreateGuideDto;
 }
 

@@ -133,6 +133,7 @@ model Place {
   name        String
   description String?
   placeImg    String?    @map("place_img")
+  
   location    Location?  @relation(fields: [locationId], references: [id])
   tripUnits   TripUnit[]
 

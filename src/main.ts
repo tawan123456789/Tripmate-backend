@@ -8,14 +8,7 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   // Global validation
- app.useGlobalPipes(
-  new ValidationPipe({
-    whitelist: true,        // ตัด field ที่ "ไม่มี decorator" ออก
-    forbidNonWhitelisted: false,
-    transform: true,        // แปลงชนิดตาม @Type(() => ...)
-    transformOptions: { enableImplicitConversion: true },
-  }),
-);
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   // Enable CORS
   app.enableCors();

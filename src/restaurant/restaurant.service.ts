@@ -32,7 +32,7 @@ constructor(private prisma: PrismaService) {}
       }
 
   findAll() {
-    return `This action returns all restaurant`;
+    return this.prisma.restaurant.findMany();
   }
 
 async findOne(id: string) {
@@ -42,7 +42,7 @@ async findOne(id: string) {
     }
   
     async update(id: string, dto: UpdateRestaurantDto) {
-      const existing = await this.prisma.restaurant.findUnique({ where: { id } });
+      const existing = await this.prisma.restaurant.findUnique({ where: { id } });8
           if (!existing) {
               throw new NotFoundException('Location not found');
           }
