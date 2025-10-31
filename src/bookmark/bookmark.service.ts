@@ -13,15 +13,28 @@ export class BookmarkService {
   constructor(private prisma: PrismaService) {}
         
         async create(dto: CreateBookmarkDto) {
-            try {
+            try { 
+                if(dto.status == "trip"){
                                 return await this.prisma.bookmark.create({
                                         data: {
                                     
+                                            tripId: dto.serviceId,
+                                            serviceId:null,
+                                            userId: dto.userId,
+                                            status: dto.status,
+                                        },
+                                });
+            } else if(dto.status == "service"){
+                                return await this.prisma.bookmark.create({
+                                        data: {
+                                            tripId:null,
                                             serviceId: dto.serviceId,
                                             userId: dto.userId,
                                             status: dto.status,
                                         },
                                 });
+            }
+
             } catch (e) {
                 if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
                     throw new ConflictException('bookmark ID ถูกใช้งานแล้ว');

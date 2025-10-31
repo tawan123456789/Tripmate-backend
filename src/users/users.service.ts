@@ -71,13 +71,15 @@ export class UsersService {
   }
 
   async findOne(id: string, req: any) {
-
+    const u = await this.prisma.user.findUnique({ where: { id } });
+    if (!u) throw new NotFoundException('user not found');
     console.log('Req id:', req.user?.id);
     console.log('req role:', req.user?.role);
+    console.log('Role:', u.role);
     if (req.user?.id == id) {
-          const user = await this.prisma.user.findUnique({ where: { id } });
-    if (!user) throw new NotFoundException('user not found');
-      const userProfile= {
+      const user = await this.prisma.user.findUnique({ where: { id } });
+      if (!user) throw new NotFoundException('user not found');
+      const userProfile = {
         username: user.username,
         fname: user.fname,
         lname: user.lname,
@@ -89,7 +91,7 @@ export class UsersService {
       };
       return userProfile;
     }
-    else if (req.user?.role === 'user') {
+    else if (u.role == 'user') {
       const user = await this.prisma.user.findUnique({ where: { id } });
       if (!user) throw new NotFoundException('user not found');
 
@@ -113,8 +115,194 @@ export class UsersService {
         where: { ownerId: id },
       });
 
-      
+      // mark favorite: always include boolean `favorite`; only query bookmarks if viewer exists and trips present
+      const viewerId = req.user?.id;
+      // default: all not favorite
+      let tripsWithFavorite = trip.map((t) => ({ ...t, favorite: false }));
+      if (viewerId && trip.length) {
+        const tripIds = trip.map((t) => t.id);
+        // bookmarks may reference the trip via `tripId` or via `serviceId` depending on how it was created
+        const bookmarks = await this.prisma.bookmark.findMany({
+          where: {
+            userId: viewerId,
+            OR: [
+              { serviceId: { in: tripIds } },
+              { tripId: { in: tripIds } },
+            ],
+          },
+          select: { serviceId: true, tripId: true },
+        });
+        if (bookmarks.length) {
+          const favSet = new Set(bookmarks.map((b) => b.tripId ?? b.serviceId));
+          tripsWithFavorite = trip.map((t) => ({ ...t, favorite: favSet.has(t.id) }));
+        }
+      }
+      const userProfile = {
+        username: user.username,
+        fname: user.fname,
+        lname: user.lname,
+        birthDate: user.birthDate ? user.birthDate.toISOString() : undefined,
+        phone: user.phone ? user.phone : undefined,
+        email: user.email,
+        gender: user.gender,
+        profileImg: user.profileImg ? user.profileImg : undefined,
+        tripCount: tripCount,
+        bookingCount: bookingCount,
+        trip: tripsWithFavorite,
+      };
+      return userProfile;
+    }
 
+    else if (u.role == 'guide') {
+
+      const user = await this.prisma.user.findUnique({ where: { id } });
+      if (!user) throw new NotFoundException('user not found');
+
+      const tripCount = await this.prisma.tripPlan.count({
+        where: {
+          ownerId: id,
+        },
+      });
+      const memberships = await this.prisma.userJoinGroup.findMany({
+        where: { userId: id },
+        select: { groupId: true },
+      });
+      const groupIds = memberships.map((m) => m.groupId);
+      const bookingCount = groupIds.length
+        ? await this.prisma.booking.count({ where: { groupId: { in: groupIds } } })
+        : 0;
+
+      const service = await this.prisma.userService.findMany({
+        where: { ownerId: id },
+      });
+
+      let serviceWithFavorite = service.map((s) => ({ ...s, favorite: false }));
+      if (serviceWithFavorite.length) {
+        const serviceIds = service.map((s) => s.id);
+        const viewerId = req.user?.id;
+        const bookmarks = await this.prisma.bookmark.findMany({
+          where: {
+            userId: viewerId,
+            serviceId: { in: serviceIds },
+          },
+          select: { serviceId: true },
+        });
+        if (bookmarks.length) {
+          const favSet = new Set(bookmarks.map((b) => b.serviceId));
+          serviceWithFavorite = service.map((s) => ({ ...s, favorite: favSet.has(s.id) }));
+        }
+      }
+
+      const userProfile = {
+        username: user.username,
+        fname: user.fname,
+        lname: user.lname,
+        birthDate: user.birthDate ? user.birthDate.toISOString() : undefined,
+        phone: user.phone ? user.phone : undefined,
+        email: user.email,
+        gender: user.gender,
+        profileImg: user.profileImg ? user.profileImg : undefined,
+        tripCount: tripCount,
+        bookingCount: bookingCount,
+        service: serviceWithFavorite,
+      };
+      return userProfile;
+    }
+
+    else if (u.role == 'hotel-manager') {
+      const user = await this.prisma.user.findUnique({ where: { id } });
+      if (!user) throw new NotFoundException('user not found');
+
+      const tripCount = await this.prisma.tripPlan.count({
+        where: {
+          ownerId: id,
+        },
+      });
+      const memberships = await this.prisma.userJoinGroup.findMany({
+        where: { userId: id },
+        select: { groupId: true },
+      });
+      const groupIds = memberships.map((m) => m.groupId);
+      const bookingCount = groupIds.length
+        ? await this.prisma.booking.count({ where: { groupId: { in: groupIds } } })
+        : 0;
+
+      const service = await this.prisma.userService.findMany({
+        where: { ownerId: id, type: 'hotel' },
+      });
+
+      let serviceWithFavorite = service.map((s) => ({ ...s, favorite: false }));
+      if (serviceWithFavorite.length) {
+        const serviceIds = service.map((s) => s.id);
+        const viewerId = req.user?.id;
+        const bookmarks = await this.prisma.bookmark.findMany({
+          where: {
+            userId: viewerId,
+            serviceId: { in: serviceIds },
+          },
+          select: { serviceId: true },
+        });
+        if (bookmarks.length) {
+          const favSet = new Set(bookmarks.map((b) => b.serviceId));
+          serviceWithFavorite = service.map((s) => ({ ...s, favorite: favSet.has(s.id) }));
+        }
+      }
+
+      const userProfile = {
+        username: user.username,
+        fname: user.fname,
+        lname: user.lname,
+        birthDate: user.birthDate ? user.birthDate.toISOString() : undefined,
+        phone: user.phone ? user.phone : undefined,
+        email: user.email,
+        gender: user.gender,
+        profileImg: user.profileImg ? user.profileImg : undefined,
+        tripCount: tripCount,
+        bookingCount: bookingCount,
+        service: serviceWithFavorite,
+      };
+      return userProfile;
+
+    }
+
+    else if (u.role == 'car-manager') {
+      const user = await this.prisma.user.findUnique({ where: { id } });
+      if (!user) throw new NotFoundException('user not found');
+
+      const tripCount = await this.prisma.tripPlan.count({
+        where: {
+          ownerId: id,
+        },
+      });
+      const memberships = await this.prisma.userJoinGroup.findMany({
+        where: { userId: id },
+        select: { groupId: true },
+      });
+      const groupIds = memberships.map((m) => m.groupId);
+      const bookingCount = groupIds.length
+        ? await this.prisma.booking.count({ where: { groupId: { in: groupIds } } })
+        : 0;
+
+      const service = await this.prisma.userService.findMany({
+        where: { ownerId: id, type: 'car_rental_center' },
+      });
+
+      let serviceWithFavorite = service.map((s) => ({ ...s, favorite: false }));
+      if (serviceWithFavorite.length) {
+        const serviceIds = service.map((s) => s.id);
+        const viewerId = req.user?.id;
+        const bookmarks = await this.prisma.bookmark.findMany({
+          where: {
+            userId: viewerId,
+            serviceId: { in: serviceIds },
+          },
+          select: { serviceId: true },
+        });
+        if (bookmarks.length) {
+          const favSet = new Set(bookmarks.map((b) => b.serviceId));
+          serviceWithFavorite = service.map((s) => ({ ...s, favorite: favSet.has(s.id) }));
+        }
+      }
       
       const userProfile = {
         username: user.username,
@@ -127,10 +315,68 @@ export class UsersService {
         profileImg: user.profileImg ? user.profileImg : undefined,
         tripCount: tripCount,
         bookingCount: bookingCount,
-        trip: trip,
+        service: serviceWithFavorite,
+      };
+
+      return userProfile;
+    }
+    else if (u.role == 'restaurant-manager') {
+      const user = await this.prisma.user.findUnique({ where: { id } });
+      if (!user) throw new NotFoundException('user not found');
+      
+      const tripCount = await this.prisma.tripPlan.count({
+        where: {
+          ownerId: id,
+        },
+      });
+      const memberships = await this.prisma.userJoinGroup.findMany({
+        where: { userId: id },
+        select: { groupId: true },
+      });
+      const groupIds = memberships.map((m) => m.groupId);
+      const bookingCount = groupIds.length
+        ? await this.prisma.booking.count({ where: { groupId: { in: groupIds } } })
+        : 0;
+      
+      const service = await this.prisma.userService.findMany({
+        where: { ownerId: id, type: 'restaurant' },
+      });
+
+      let serviceWithFavorite = service.map((s) => ({ ...s, favorite: false }));
+      if (serviceWithFavorite.length) {
+        const serviceIds = service.map((s) => s.id);
+        const viewerId = req.user?.id;
+        const bookmarks = await this.prisma.bookmark.findMany({
+          where: {
+            userId: viewerId,
+            serviceId: { in: serviceIds },
+          },
+          select: { serviceId: true },
+        });
+        if (bookmarks.length) {
+          const favSet = new Set(bookmarks.map((b) => b.serviceId));
+          serviceWithFavorite = service.map((s) => ({ ...s, favorite: favSet.has(s.id) }));
+        }
+      }
+
+      const userProfile = {
+        username: user.username,
+        fname: user.fname,
+        lname: user.lname,
+        birthDate: user.birthDate ? user.birthDate.toISOString() : undefined,
+        phone: user.phone ? user.phone : undefined,
+        email: user.email,
+        gender: user.gender,
+        profileImg: user.profileImg ? user.profileImg : undefined,
+        tripCount: tripCount,
+        bookingCount: bookingCount,
+        service: serviceWithFavorite,
       };
       return userProfile;
     }
+
+
+    throw new NotFoundException('user role not found');
 
   }
 
