@@ -3,8 +3,10 @@ import { CreateBookmarkDto } from './dto/create-bookmark.dto';
 import { UpdateBookmarkDto } from './dto/update-bookmark.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
 import { ConflictException } from '@nestjs/common/exceptions';
 import { NotFoundException } from '@nestjs/common';
+import { randomAlphanumeric } from 'src/utils/random.util';
 
 @Injectable()
 export class BookmarkService {
@@ -12,20 +14,23 @@ export class BookmarkService {
         
         async create(dto: CreateBookmarkDto) {
             try {
-                return await this.prisma.bookmark.create({
-                    data: {
-                      id: dto.id,
-                      serviceId: dto.serviceId,
-                      userId: dto.userId,
-                      status: dto.status,
-                    },
-                });
+                                return await this.prisma.bookmark.create({
+                                        data: {
+                                    
+                                            serviceId: dto.serviceId,
+                                            userId: dto.userId,
+                                            status: dto.status,
+                                        },
+                                });
             } catch (e) {
                 if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
                     throw new ConflictException('bookmark ID ถูกใช้งานแล้ว');
                 }
                     }
         }
+
+
+
   findAll() {
     return `This action returns all bookmark`;
   }
@@ -44,7 +49,6 @@ export class BookmarkService {
           return this.prisma.bookmark.update({
               where: { id },
               data: {
-                id: dto.id,
                 serviceId: dto.serviceId,
                 userId: dto.userId,
                 status: dto.status,
