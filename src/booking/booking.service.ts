@@ -23,13 +23,13 @@ export class BookingService {
     const diffMs = end.getTime() - start.getTime();
     const totalHours = diffMs / (1000 * 60 * 60);
     if (service?.type === "guide") {
-    const guide = await this.prisma.guide.findUnique({ where: { id: serviceId } });
+      const guide = await this.prisma.guide.findUnique({ where: { id: serviceId } });
 
-    if (!guide) throw new Error(`Guide not found for serviceId ${serviceId}`);
-    if (guide.hourlyRate == null) throw new Error(`Guide hourlyRate not set`);
-    const rate: number = guide.hourlyRate.toNumber();
-    price = rate * totalHours;
-    }
+      if (!guide) throw new Error(`Guide not found for serviceId ${serviceId}`);
+      if (guide.hourlyRate == null) throw new Error(`Guide hourlyRate not set`);
+      const rate: number = guide.hourlyRate.toNumber();
+      price = rate * totalHours;
+      }
     else if(service?.type == "car_rental_center"){
       const carRental = await this.prisma.carRentalCenter.findUnique({ where: { id: serviceId } });
       const car = await this.prisma.car.findFirst({
