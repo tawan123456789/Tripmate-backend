@@ -31,6 +31,7 @@ model User {
   ownedTripPlans TripPlan[]      @relation("TripPlanOwner")
   memberOf       UserJoinGroup[]
   services       UserService[]   @relation("ServiceOwner")
+  transactions   Transaction[]
 
   @@map("User")
 }
@@ -294,6 +295,7 @@ model CarRentalCenter {
 
 /// รถให้เช่า (ถ้ายังไม่มีโมเดล Car ให้ใช้ด้านล่างนี้ได้)
 model Car {
+  name           String
   id             String          @id @map("car_id")
   crcId          String          @map("crc_id")
   pricePerDay    Decimal?        @map("price_per_day") @db.Decimal(10, 2)
@@ -422,10 +424,42 @@ model Booking {
   group            Group       @relation(fields: [groupId], references: [id])
   service          UserService @relation(fields: [serviceId], references: [id])
   tripUnits        TripUnit[]
+  transactions      Transaction[]
 
   @@index([serviceId])
   @@index([groupId])
   @@map("Booking")
+}
+
+enum TransactionMethod {
+  CASH
+  BANK_TRANSFER
+  CREDIT_CARD
+  DEBIT_CARD
+  PROMPTPAY
+  E_WALLET
+  QR
+}
+model Transaction {
+  id            String             @id @default(uuid()) @map("tx_id")
+  userId        String             @map("user_id") @db.Uuid
+  bookingId     String             @map("booking_id")
+
+  // วิธีชำระ/ผู้ให้บริการ/อ้างอิง
+  method        TransactionMethod?
+
+  // สถานะและเวลา
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime?          @updatedAt @map("updated_at")
+
+
+  // Relations
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  booking       Booking            @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([bookingId])
+  @@map("Transaction")
 }
 
 model Discount {

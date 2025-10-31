@@ -11,6 +11,9 @@ export class CreateRoomDto {
   @IsOptional() @IsString()
   name?: string;
 
+  @IsOptional() @IsString()
+  id: string; // ✅ เพิ่ม ฟิลด์ id (optional ถ้าจะให้ service gen)
+  @IsString()
   hotelId!: string; // ต้องระบุว่าเป็นของโรงแรมไหน
 
   @IsOptional() @IsArray() @IsString({ each: true })

@@ -14,6 +14,8 @@ import {
   ValidationOptions,
   ValidationArguments,
 } from 'class-validator';
+import { Transaction } from '@prisma/client';
+type TransactionMethod = Transaction['method'];
 
 function IsAfter(property: string, validationOptions?: ValidationOptions) {
   return function (object: object, propertyName: string) {
@@ -71,7 +73,12 @@ export class CreateBookingDto {
   @IsString()
   note?: string;
 
+  @IsString()
+  paymentMethod!: TransactionMethod;
+
   @IsOptional()
   @IsString()
-  status?: string; // ถ้ามี enum เช่น 'pending' | 'confirmed' | 'cancelled' ค่อยเปลี่ยนเป็น @IsIn([...])
+  status?: string;
+  
+  // ถ้ามี enum เช่น 'pending' | 'confirmed' | 'cancelled' ค่อยเปลี่ยนเป็น @IsIn([...])
 }

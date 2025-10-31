@@ -12,6 +12,9 @@ import { Type } from 'class-transformer';
 
 export class CreateCarDto {
   @IsString()
+  name!: string;
+  
+  @IsString()
   id!: string;           // ต้องไม่ซ้ำภายในระบบรถ
 
   @IsString()

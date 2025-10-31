@@ -107,8 +107,15 @@ export class BookingService {
           group: true,
         },
       });
+      const transaction = await this.prisma.transaction.create({
+        data: {
+          bookingId: booking.id,
+          groupId: dto.groupId,
+          method: dto.paymentMethod,
+        },
+      });
 
-      return booking;
+      return { booking, transaction };
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2003') {

@@ -2,8 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { HotelService } from './hotel.service';
 import { CreateHotelDto } from './dto/create-hotel.dto';
 import { UpdateHotelDto } from './dto/update-hotel.dto';
+import { CreateRoomDto } from 'src/room/dto/create-room.dto';
 
-@Controller('hotels')
+@Controller('hotel')
 export class HotelController {
   constructor(private readonly hotelService: HotelService) {}
 
@@ -30,5 +31,10 @@ export class HotelController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.hotelService.remove(id);
+  }
+
+  @Post('add-room')
+  addRoom(@Body() createRoomDto: CreateRoomDto) {
+    return this.hotelService.addRoom(createRoomDto);
   }
 }

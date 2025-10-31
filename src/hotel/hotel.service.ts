@@ -4,6 +4,7 @@ import { UpdateHotelDto } from './dto/update-hotel.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { CreateRoomDto } from '../room/dto/create-room.dto';
 
 @Injectable()
 export class HotelService {
@@ -82,4 +83,21 @@ export class HotelService {
         throw e;
     }
   }
+    async addRoom(dto : CreateRoomDto) {
+      try {
+        return await this.prisma.room.create({
+          data: {
+            ...dto,
+            // ให้ DB/Prisma gen เอง
+          },
+        });
+      } catch (e) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+          throw new ConflictException('room already exists');
+        }
+        throw e;
+      }
+    }
+
+  
 }
