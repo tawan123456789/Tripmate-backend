@@ -90,7 +90,6 @@ export class BookingService {
         throw new ConflictException('Service already booked for the selected date range');
       }
 
-      // 3️⃣ สร้าง Booking
       const booking = await this.prisma.booking.create({
         data: {
           serviceId: dto.serviceId,
@@ -99,24 +98,51 @@ export class BookingService {
           startBookingDate: dto.startBookingDate,
           endBookingDate: dto.endBookingDate,
           note: dto.note,
-          price: await this.servicePrice(dto.serviceId, dto.startBookingDate, dto.endBookingDate, dto.subServiceId),
-          status: dto.status ?? 'pending',
+          price: await this.servicePrice(
+            dto.serviceId,
+            dto.startBookingDate,
+            dto.endBookingDate,
+            dto.subServiceId,
+          ),
+          status: dto.status ?? 'booked',
         },
         include: {
           service: true,
           group: true,
         },
       });
-      const transaction = await this.prisma.transaction.create({
-        data: {
-          bookingId: booking.id,
-          groupId: dto.groupId,
-          method: dto.paymentMethod,
-        },
+
+      // 🔹 ดึงสมาชิกทั้งหมดของกลุ่ม + รวม owner เข้าไป (กันเผื่อ owner ไม่ได้อยู่ในตารางสมาชิก)
+      const groupMembers = await this.prisma.userJoinGroup.findMany({
+        where: { groupId: dto.groupId },
+        select: { userId: true },
       });
 
-      return { booking, transaction };
-    } catch (e) {
+      // รวม userIds แบบ unique
+      const userIdSet = new Set<string>(groupMembers.map((m) => m.userId));
+      userIdSet.add(booking.group.ownerId); // รวม owner
+
+      const userIds = Array.from(userIdSet);
+
+      const perShare =
+       booking.price ? (booking.price as any).toNumber() / userIds.length : 0;
+
+      // 🔹 สร้าง transactions ให้สมาชิกทุกคน (ใช้ $transaction เพื่อรันเป็น batch และได้ผลลัพธ์กลับมา)
+      const transactions = await this.prisma.$transaction(
+        userIds.map((uid) =>
+          this.prisma.transaction.create({
+            data: {
+              bookingId: booking.id,
+              userId: uid,
+              method: dto.paymentMethod,
+              amount: perShare,
+            },
+          }),
+        ),
+      );
+
+      return { booking, transactions };
+          } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2003') {
           throw new BadRequestException('Invalid foreign key (serviceId/groupId not found)');

@@ -450,6 +450,7 @@ model Transaction {
 
   // วิธีชำระ/ผู้ให้บริการ/อ้างอิง
   method        TransactionMethod?
+  amount        Decimal?           @db.Decimal(10, 2)
 
   // สถานะและเวลา
   createdAt     DateTime           @default(now()) @map("created_at")
