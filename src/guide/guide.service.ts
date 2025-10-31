@@ -30,21 +30,20 @@ export class GuideService {
       }
     }
   
-
   findAll() {
-    return `This action returns all guide`;
+    return this.prisma.guide.findMany();
   }
 
   async findOne(id: string) {
     const location = await this.prisma.guide.findUnique({ where: { id } });
-        if (!location) throw new NotFoundException('Location not found');
+        if (!location) throw new NotFoundException('Guide not found');
         return location;
   }
 
   async update(id: string, dto: UpdateGuideDto) {
     const existing = await this.prisma.guide.findUnique({ where: { id } });
         if (!existing) {
-            throw new NotFoundException('Location not found');
+            throw new NotFoundException('Guide not found');
         }
         return this.prisma.guide.update({
             where: { id },
