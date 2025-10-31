@@ -83,10 +83,10 @@ CREATE TABLE "public"."TripService" (
     "trip_service_id" TEXT NOT NULL,
     "trip_id" TEXT NOT NULL,
     "service_id" TEXT NOT NULL,
-    "date_time" TIMESTAMP(6) NOT NULL,
+    "date_time" TIMESTAMP(3) NOT NULL,
     "status" TEXT,
-    "created_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(6),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3),
 
     CONSTRAINT "TripService_pkey" PRIMARY KEY ("trip_service_id")
 );
@@ -349,6 +349,7 @@ CREATE TABLE "public"."Booking" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
     "status" TEXT,
+    "price" DECIMAL(10,2),
 
     CONSTRAINT "Booking_pkey" PRIMARY KEY ("booking_id")
 );
@@ -386,10 +387,10 @@ CREATE INDEX "TripUnit_trip_id_idx" ON "public"."TripUnit"("trip_id");
 CREATE INDEX "TripUnit_place_id_idx" ON "public"."TripUnit"("place_id");
 
 -- CreateIndex
-CREATE INDEX "idx_tripservice_service_id" ON "public"."TripService"("service_id");
+CREATE INDEX "TripService_service_id_idx" ON "public"."TripService"("service_id");
 
 -- CreateIndex
-CREATE INDEX "idx_tripservice_trip_id" ON "public"."TripService"("trip_id");
+CREATE INDEX "TripService_trip_id_idx" ON "public"."TripService"("trip_id");
 
 -- CreateIndex
 CREATE INDEX "Place_location_id_idx" ON "public"."Place"("location_id");
@@ -446,7 +447,7 @@ ALTER TABLE "public"."UserJoinGroup" ADD CONSTRAINT "UserJoinGroup_user_id_fkey"
 ALTER TABLE "public"."TripPlan" ADD CONSTRAINT "TripPlan_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "public"."User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."TripUnit" ADD CONSTRAINT "TripUnit_place_id_fkey" FOREIGN KEY ("place_id") REFERENCES "public"."Place"("place_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."TripUnit" ADD CONSTRAINT "TripUnit_place_id_fkey" FOREIGN KEY ("place_id") REFERENCES "public"."Place"("place_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."TripUnit" ADD CONSTRAINT "TripUnit_service_id_fkey" FOREIGN KEY ("service_id") REFERENCES "public"."Booking"("booking_id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -455,10 +456,10 @@ ALTER TABLE "public"."TripUnit" ADD CONSTRAINT "TripUnit_service_id_fkey" FOREIG
 ALTER TABLE "public"."TripUnit" ADD CONSTRAINT "TripUnit_trip_id_fkey" FOREIGN KEY ("trip_id") REFERENCES "public"."TripPlan"("trip_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."TripService" ADD CONSTRAINT "fk_tripservice_service" FOREIGN KEY ("service_id") REFERENCES "public"."UserService"("service_id") ON DELETE CASCADE ON UPDATE NO ACTION;
+ALTER TABLE "public"."TripService" ADD CONSTRAINT "fk_tripservice_service" FOREIGN KEY ("service_id") REFERENCES "public"."UserService"("service_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."TripService" ADD CONSTRAINT "fk_tripservice_trip" FOREIGN KEY ("trip_id") REFERENCES "public"."TripPlan"("trip_id") ON DELETE CASCADE ON UPDATE NO ACTION;
+ALTER TABLE "public"."TripService" ADD CONSTRAINT "fk_tripservice_trip" FOREIGN KEY ("trip_id") REFERENCES "public"."TripPlan"("trip_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Place" ADD CONSTRAINT "Place_location_id_fkey" FOREIGN KEY ("location_id") REFERENCES "public"."Location"("location_id") ON DELETE SET NULL ON UPDATE CASCADE;
