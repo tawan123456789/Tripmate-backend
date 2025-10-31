@@ -1,35 +1,81 @@
-import { IsArray, IsDecimal, IsInt, IsOptional, IsString } from 'class-validator';
+// src/car/dto/create-car.dto.ts
+import {
+  IsArray,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  IsObject,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateCarDto {
-  @IsString() id!: string;
-  @IsString() crcId!: string;
+  @IsString()
+  name!: string;
+  
+  @IsString()
+  id!: string;           // ต้องไม่ซ้ำภายในระบบรถ
 
-  @IsOptional() @IsString() brand?: string;
-  @IsOptional() @IsString() model?: string;
-  @IsOptional() @IsInt() year?: number;
+  @IsString()
+  crcId!: string;        // อ้างอิง CarRentalCenter.crc_id
 
-  @IsOptional() @IsString() transmission?: string; // "AT"/"MT"
-  @IsOptional() @IsInt() seats?: number;
-  @IsOptional() @IsInt() doors?: number;
-  @IsOptional() @IsInt() luggage?: number;
+  @IsOptional() @IsString()
+  model?: string;
 
-  @IsOptional() @IsArray() @IsString({ each: true }) pictures?: string[];
-  @IsOptional() @IsString() image?: string;
+  @IsOptional() @IsString()
+  description?: string;
 
-  @IsOptional() @IsString() fuelType?: string;
+  @IsOptional() @IsInt() @Min(1)
+  seats?: number;
 
-  @IsOptional() @IsInt() mileageLimitKm?: number;
+  @IsOptional() @IsString()
+  image?: string;
 
-  @IsOptional() @IsDecimal({ decimal_digits: '1,2' }) deposit?: string;
-  @IsOptional() @IsDecimal({ decimal_digits: '1,2' }) pricePerDay?: string;
-  @IsOptional() @IsDecimal({ decimal_digits: '1,2' }) pricePerHour?: string;
+  // Decimal ใน Prisma: รับเป็น number จาก client
+  @IsOptional() @Type(() => Number) @IsNumber()
+  pricePerDay?: number;     // Prisma Decimal(10,2)
 
-  @IsOptional() @IsString() currency?: string;
+  @IsOptional() @Type(() => Number) @IsNumber()
+  pricePerHour?: number;    // Prisma Decimal(10,2)
 
-  @IsOptional() @IsArray() @IsString({ each: true }) features?: string[];
-    @IsOptional() @IsString() description?: string;
+  @IsOptional() @IsString()
+  brand?: string;
 
-  /** insurance / availability เป็น JSON อิสระ — ถ้าต้อง strict ค่อยแตก DTO ภายหลัง */
-  @IsOptional() insurance?: Record<string, any>;
-  @IsOptional() availability?: Record<string, any>;
+  @IsOptional() @IsString()
+  currency?: string;        // default "THB" ใน DB
+
+  @IsOptional() @Type(() => Number) @IsNumber()
+  deposit?: number;         // Prisma Decimal(10,2)
+
+  @IsOptional() @IsInt() @Min(0)
+  doors?: number;
+
+  @IsOptional() @IsArray() @IsString({ each: true })
+  features?: string[];
+
+  @IsOptional() @IsString()
+  fuelType?: string;
+
+  @IsOptional() @IsInt() @Min(0)
+  luggage?: number;
+
+  @IsOptional() @IsInt() @Min(0)
+  mileageLimitKm?: number;
+
+  @IsOptional() @IsArray() @IsString({ each: true })
+  pictures?: string[];
+
+  @IsOptional() @IsString()
+  transmission?: string;
+
+  @IsOptional() @IsInt()
+  year?: number;
+
+  // JSON ฟิลด์: ให้ส่งเป็น object มาได้
+  @IsOptional() @IsObject()
+  availability?: Record<string, any>;
+
+  @IsOptional() @IsObject()
+  insurance?: Record<string, any>;
 }

@@ -3,6 +3,7 @@ import { CreateCarRentalCenterDto } from './dto/create-car_rental_center.dto';
 import { UpdateCarRentalCenterDto } from './dto/update-car_rental_center.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { CreateCarDto } from 'src/car/dto/create-car.dto';
 
 @Injectable()
 export class CarRentalCenterService {
@@ -63,6 +64,21 @@ async findOne(id: string) {
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
         throw new NotFoundException('car rental center not found');
+      }
+      throw e;
+    }
+  }
+
+  async addCar(dto : CreateCarDto) {
+    try {
+      return await this.prisma.car.create({
+        data: {
+          ...dto,// ให้ DB/Prisma gen เอง
+        },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+        throw new ConflictException('car already exists');
       }
       throw e;
     }

@@ -9,26 +9,37 @@ export class BookingController {
 
   @Post()
   create(@Body() createBookingDto: CreateBookingDto) {
-    return this.bookingService.create(createBookingDto);
+    return this.bookingService.makeBooking(createBookingDto);
   }
 
-  @Get()
-  findAll() {
-    return this.bookingService.findAll();
+  @Patch('cancel/:id')
+  cancel(@Param('id') id: string) {
+    return this.bookingService.cancelBooking(id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.bookingService.findOne(+id);
-  }
+  // @Post()
+  // create(@Body() createBookingDto: CreateBookingDto) {
+  //   return this.bookingService.create(createBookingDto);
+  // }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
-    return this.bookingService.update(+id, updateBookingDto);
-  }
+  // @Get()
+  // findAll() {
+  //   return this.bookingService.findAll();
+  // }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.bookingService.remove(+id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.bookingService.findOne(+id);
+  // }
+
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
+  //   return this.bookingService.update(+id, updateBookingDto);
+  // }
+
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.bookingService.remove(+id);
+  // }
+
 }

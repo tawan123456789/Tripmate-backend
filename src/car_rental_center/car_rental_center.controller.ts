@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { CarRentalCenterService } from './car_rental_center.service';
 import { CreateCarRentalCenterDto } from './dto/create-car_rental_center.dto';
 import { UpdateCarRentalCenterDto } from './dto/update-car_rental_center.dto';
+import { CreateCarDto } from 'src/car/dto/create-car.dto';
 
 @Controller('car-rental-center')
 export class CarRentalCenterController {
@@ -30,5 +31,10 @@ export class CarRentalCenterController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.carRentalCenterService.remove(id);
+  }
+
+  @Post('add-car')
+  addCar(@Body() CreateCarDto: CreateCarDto) {
+    return this.carRentalCenterService.addCar(CreateCarDto);
   }
 }

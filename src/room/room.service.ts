@@ -12,7 +12,7 @@ export class RoomService {
         try {
           return await this.prisma.room.create({
             data: {
-              id: crypto.randomUUID(), // หรือให้มาจากที่อื่น
+              id: dto.id,  // ให้ client ส่ง id มา หรือ จะให้ DB/Prisma gen เอง
               hotelId: dto.hotelId,
               name: dto.name,
               pictures: dto.pictures,
