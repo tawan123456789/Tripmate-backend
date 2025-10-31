@@ -126,7 +126,8 @@ export class UsersService {
   }
 
   async findByUsername(username: string) {
-    const user = await this.prisma.user.findUnique({ where: { email: username } });
+    // Allow lookup by email or username for flexibility
+    const user = await this.prisma.user.findFirst({ where: { OR: [{ email: username }, { username: username }] } });
     return user;
   }
 
