@@ -34,6 +34,7 @@ model User {
   transactions   Transaction[]
   expenses    ExpenseGroup[]
   expenseSpliters ExpenseSpliter[]
+  payments    GroupUserPayment[]
 
   @@map("User")
 }
@@ -54,6 +55,7 @@ model Group {
   tripPlans   TripPlan?       @relation(fields: [tripPlansId], references: [id])
   members     UserJoinGroup[]
   expenses    ExpenseGroup[]
+  payments    GroupUserPayment[]
 
   @@index([ownerId])
   @@map("Group")
@@ -76,6 +78,20 @@ model ExpenseGroup {
   @@index([userId])
   @@map("ExpenseGroup")
 
+}
+
+model GroupUserPayment{
+  groupId    String   @map("group_id")
+  userId     String   @map("user_id") @db.Uuid
+  status     String?
+  bank       String?  @map("bank")
+  accountNo  String?   @map("account_no")
+  promtpayId  String?  @map("promptpay_id")
+  group      Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, userId])
+  @@map("GroupUserPayment")
 }
 
 model ExpenseSpliter{
