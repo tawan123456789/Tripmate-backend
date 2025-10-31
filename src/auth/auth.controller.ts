@@ -25,9 +25,11 @@ export class AuthController {
     return this.authService.register(createUserDto, profileImg);
   }
 
-  @Post('login')
-  @ApiBody({ type: LoginDto })
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
-  }
+ @Post('login')
+@ApiBody({ type: LoginDto })
+async login(@Body() loginDto: LoginDto) {
+  console.log("Login DTO:", loginDto);
+  return this.authService.login(loginDto);
+}
+
 }

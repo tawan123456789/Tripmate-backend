@@ -28,10 +28,8 @@ export class GroupController {
 
     return this.groupService.joinGroup(userId, groupId);
   }
-  @Delete('/:groupId/leave')
-  leaveGroup(@Body() body: { userId: string}, @Param('groupId') groupId: string) {
-    const { userId} = body;
-
+  @Delete('/:groupId/leave/:userId')
+  leaveGroup(@Param('userId') userId: string, @Param('groupId') groupId: string) {
     return this.groupService.leaveGroup(userId, groupId);
   }
 
