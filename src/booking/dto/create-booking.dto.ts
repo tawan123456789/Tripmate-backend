@@ -54,6 +54,9 @@ export class CreateBookingDto {
   // หากใช้ UUID จริง ให้เปลี่ยนเป็น @IsUUID()
   @IsString()
   serviceId!: string;
+
+  @IsOptional()
+  @IsString()
   subServiceId?: string;
 
   @IsString()

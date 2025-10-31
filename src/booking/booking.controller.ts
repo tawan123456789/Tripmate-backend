@@ -9,6 +9,7 @@ export class BookingController {
 
   @Post()
   create(@Body() createBookingDto: CreateBookingDto) {
+    console.log('DTO in controller:', createBookingDto);
     return this.bookingService.makeBooking(createBookingDto);
   }
 
