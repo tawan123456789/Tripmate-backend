@@ -75,22 +75,101 @@ export class BookingService {
 
       if (!service) throw new NotFoundException('Service not found');
       if (!group) throw new NotFoundException('Group not found');
+      if (service.type !== 'guide') {
+  if (!dto.subServiceId) {
+    throw new BadRequestException('subServiceId is required for this service type');
+  }
+
+  let exists = false;
+
+  switch (service.type) {
+    case 'hotel': {
+      // Room มีคีย์ (id, hotelId)
+      const room = await this.prisma.room.findFirst({
+        where: { id: dto.subServiceId, hotelId: service.id },
+        select: { id: true },
+      });
+      exists = !!room;
+      break;
+    }
+    case 'car_rental_center': {
+      // Car มีคีย์ (id, crcId)
+      const car = await this.prisma.car.findFirst({
+        where: { id: dto.subServiceId, crcId: service.id },
+        select: { id: true },
+      });
+      exists = !!car;
+      break;
+    }
+    case 'restaurant': {
+      // Table มีคีย์ (id, restaurantId)
+      const table = await this.prisma.table.findFirst({
+        where: { id: dto.subServiceId, restaurantId: service.id },
+        select: { id: true },
+      });
+      exists = !!table;
+      break;
+    }
+    default:
+      // ถ้ามี service type ใหม่ ๆ ยังไม่รองรับ subService
+      throw new BadRequestException(`Unsupported service type "${service.type}" for subService check`);
+  }
+
+  if (!exists) {
+    throw new NotFoundException(
+      `Sub-service "${dto.subServiceId}" not found under service "${service.id}" (${service.type})`
+    );
+  }
+} else {
+  // guide: ไม่มี subService → เคลียร์ทิ้งเพื่อความชัดเจน (กันค่าหลงมาสร้างเป็น null โดยตั้งใจ)
+  dto.subServiceId = undefined;
+}
 
       // 2️⃣ ตรวจสอบวันจองซ้ำ (ถ้าต้องการไม่ให้ซ้ำ)
-      const overlapping = await this.prisma.booking.findFirst({
-        where: {
-          serviceId: dto.serviceId,
-          AND: [
-            { startBookingDate: { lte: dto.endBookingDate ?? dto.startBookingDate } },
-            { endBookingDate: { gte: dto.startBookingDate } },
-          ],
-        },
-      });
-      if (overlapping) {
-        throw new ConflictException('Service already booked for the selected date range');
+      // กำหนดสถานะที่ถือว่า “ครองสิทธิ์ช่วงเวลา” จริง ๆ
+      const ACTIVE_STATUSES = ['pending', 'booked', 'confirmed'] as const;
+
+      // --- คำนิยามทับซ้อนแบบ half-open interval [start, end) ---
+      // existing.start < new.end   &&   (existing.end > new.start || existing.end IS NULL)
+      const timeOverlapWhere = {
+        AND: [
+          { startBookingDate: { lt: dto.endBookingDate ?? dto.startBookingDate } },
+          {
+            OR: [
+              { endBookingDate: { gt: dto.startBookingDate } },
+              { endBookingDate: null }, // จองแบบไม่กำหนดปลาย → ถือว่าทับซ้อนเสมอ
+            ],
+          },
+        ],
+      };
+
+      // --- เงื่อนไขฐาน: service + status ---
+      const baseWhere: any = {
+        serviceId: dto.serviceId,
+        status: { in: [...ACTIVE_STATUSES] },
+        ...timeOverlapWhere,
+      };
+
+      if (service.type === 'guide') {
+        // ไม่ทำอะไรเพิ่ม: baseWhere เพียงพอ
+      } else {
+        if (!dto.subServiceId) {
+          // ถ้าเป็น resource แบบย่อย (ห้อง/รถ/โต๊ะ) แต่ไม่ส่ง subServiceId มา ให้เบรคตั้งแต่ตรงนี้
+          throw new BadRequestException('subServiceId is required for this service type');
+        }
+        baseWhere.subServiceId = dto.subServiceId;
+
+        // ป้องกันกรณี booking เก่าบางอันบันทึก subServiceId เป็น null (legacy) แต่ครองทั้ง service
+        // ถ้าอยากให้ “จองทั้ง service” บล็อกย่อยทั้งหมด ให้เพิ่ม OR แบบนี้:
+        // baseWhere.OR = [{ subServiceId: dto.subServiceId }, { subServiceId: null }];
+        // แต่ถ้าไม่ต้องการพฤติกรรมนี้ ให้คง baseWhere.subServiceId อย่างเดียวไว้
       }
 
-      // 3️⃣ สร้าง Booking
+      const overlapping = await this.prisma.booking.findFirst({ where: baseWhere });
+      if (overlapping) {
+        throw new ConflictException('Service or sub-service already booked for the selected date range');
+      }
+
       const booking = await this.prisma.booking.create({
         data: {
           serviceId: dto.serviceId,
@@ -99,24 +178,51 @@ export class BookingService {
           startBookingDate: dto.startBookingDate,
           endBookingDate: dto.endBookingDate,
           note: dto.note,
-          price: await this.servicePrice(dto.serviceId, dto.startBookingDate, dto.endBookingDate, dto.subServiceId),
-          status: dto.status ?? 'pending',
+          price: await this.servicePrice(
+            dto.serviceId,
+            dto.startBookingDate,
+            dto.endBookingDate,
+            dto.subServiceId,
+          ),
+          status: dto.status ?? 'booked',
         },
         include: {
           service: true,
           group: true,
         },
       });
-      const transaction = await this.prisma.transaction.create({
-        data: {
-          bookingId: booking.id,
-          groupId: dto.groupId,
-          method: dto.paymentMethod,
-        },
+
+      // 🔹 ดึงสมาชิกทั้งหมดของกลุ่ม + รวม owner เข้าไป (กันเผื่อ owner ไม่ได้อยู่ในตารางสมาชิก)
+      const groupMembers = await this.prisma.userJoinGroup.findMany({
+        where: { groupId: dto.groupId },
+        select: { userId: true },
       });
 
-      return { booking, transaction };
-    } catch (e) {
+      // รวม userIds แบบ unique
+      const userIdSet = new Set<string>(groupMembers.map((m) => m.userId));
+      userIdSet.add(booking.group.ownerId); // รวม owner
+
+      const userIds = Array.from(userIdSet);
+
+      const perShare =
+       booking.price ? (booking.price as any).toNumber() / userIds.length : 0;
+
+      // 🔹 สร้าง transactions ให้สมาชิกทุกคน (ใช้ $transaction เพื่อรันเป็น batch และได้ผลลัพธ์กลับมา)
+      const transactions = await this.prisma.$transaction(
+        userIds.map((uid) =>
+          this.prisma.transaction.create({
+            data: {
+              bookingId: booking.id,
+              userId: uid,
+              method: dto.paymentMethod,
+              amount: perShare,
+            },
+          }),
+        ),
+      );
+
+      return { booking, transactions };
+          } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2003') {
           throw new BadRequestException('Invalid foreign key (serviceId/groupId not found)');
