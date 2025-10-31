@@ -135,6 +135,7 @@ export class GroupService {
         if (!existing) {
             throw new NotFoundException('Location not found');
         }
+        
         return this.prisma.group.update({
             where: { id },
             data: {
@@ -156,5 +157,28 @@ export class GroupService {
             }
             throw e;
         }
+    }
+
+    async groupDetails(id: string) {
+        const group = await this.prisma.group.findUnique({
+            where: { id },
+            include: {
+                members: {
+                    select: {
+                        userId: true,
+                        status: true,
+                        joinDate: true,
+                        user: {
+                            select: {
+                                username: true,
+                                profileImg: true ,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        if (!group) throw new NotFoundException('Group not found');
+        return group;
     }
 }
