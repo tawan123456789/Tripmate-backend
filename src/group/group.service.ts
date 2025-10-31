@@ -9,6 +9,7 @@ import { MinioService } from '../minio/minio.service';
 import { randomNumber, randomString, randomAlphanumeric } from '../utils/random.util';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateExpenseGroupDto } from '../expense/dto/create-expense-group.dto';
+import { UpdateGroupUserPaymentDto } from './dto/update-group-user-payment.dto';
 
 const randomId = randomString(8);
 const randomCode = randomAlphanumeric(6); 
@@ -36,6 +37,9 @@ export class GroupService {
                     status: dto.status,
                     description: dto.description,
                 },
+
+
+
             }); 
              await this.prisma.userJoinGroup.create({
                 data: {
@@ -59,7 +63,7 @@ export class GroupService {
 
     async joinGroup(userId: string, groupId: string) {
         try {
-            return await this.prisma.userJoinGroup.create({
+            const membership = await this.prisma.userJoinGroup.create({
                 data: {
                     userId: userId,
                     groupId: groupId,
@@ -67,6 +71,19 @@ export class GroupService {
                     joinDate: new Date(),
                 },
             });
+
+            const payment = await this.prisma.groupUserPayment.create({
+                data: {
+                    id:randomAlphanumeric(8),
+                    userId: userId,
+                    groupId: groupId,
+                    bank: "",
+                    accountNo: "",
+                    promtpayId: "",
+                },
+            });
+
+            return membership;
         }
         catch (e) {
             if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
@@ -236,7 +253,7 @@ export class GroupService {
             },
         });
 
-      
+        // Collect all userIds
         const userSet = new Set<string>();
         for (const expense of expenses) {
             userSet.add(expense.userId);
@@ -246,14 +263,22 @@ export class GroupService {
         }
         const userIds = Array.from(userSet);
 
-      
+        // Fetch user info
+        const users = await this.prisma.user.findMany({
+            where: { id: { in: userIds } },
+            select: { id: true, username: true, profileImg: true },
+        });
+        const userMap: Record<string, { id: string; username: string; profileImg: string | null }> = {};
+        for (const u of users) userMap[u.id] = u;
+
+        // Calculate paid
         const paidMap: Record<string, number> = {};
         for (const userId of userIds) paidMap[userId] = 0;
         for (const expense of expenses) {
             paidMap[expense.userId] += Number(expense.amount) || 0;
         }
 
-        // 3. Calculate total should pay by each user (split equally per expense)
+        // Calculate shouldPay
         const shouldPayMap: Record<string, number> = {};
         for (const userId of userIds) shouldPayMap[userId] = 0;
         for (const expense of expenses) {
@@ -266,26 +291,28 @@ export class GroupService {
             }
         }
 
-        // 4. Calculate net balance for each user
+        // Net
         const netMap: Record<string, number> = {};
         for (const userId of userIds) {
             netMap[userId] = paidMap[userId] - shouldPayMap[userId];
         }
 
-        // 5. Generate transactions: who pays whom and how much
-        // Positive net: user is owed money, Negative net: user owes money
+        // Transactions with user info
         const creditors = userIds.filter(uid => netMap[uid] > 0).map(uid => ({ userId: uid, amount: netMap[uid] }));
         const debtors = userIds.filter(uid => netMap[uid] < 0).map(uid => ({ userId: uid, amount: -netMap[uid] }));
 
-        // Greedy settle
-        const transactions: Array<{ from: string; to: string; amount: number }> = [];
+        const transactions: Array<{ from: any; to: any; amount: number }> = [];
         let i = 0, j = 0;
         while (i < debtors.length && j < creditors.length) {
             const debtor = debtors[i];
             const creditor = creditors[j];
             const payAmount = Math.min(debtor.amount, creditor.amount);
             if (payAmount > 0.0001) {
-                transactions.push({ from: debtor.userId, to: creditor.userId, amount: Math.round(payAmount * 100) / 100 });
+                transactions.push({
+                    from: userMap[debtor.userId],
+                    to: userMap[creditor.userId],
+                    amount: Math.round(payAmount * 100) / 100
+                });
             }
             debtor.amount -= payAmount;
             creditor.amount -= payAmount;
@@ -301,5 +328,48 @@ export class GroupService {
         };
     }
 
+    async getGroupPayments(groupId: string) {
+        const payments = await this.prisma.groupUserPayment.findMany({
+            where: { groupId },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        profileImg: true,
+                    },
+                },
+            },
+        });
+        return payments;
+    }
+
+    async updateGroupPayments(id: string, dto: UpdateGroupUserPaymentDto) {
+        const payments = await this.prisma.groupUserPayment.updateMany({
+            where: { id },
+            data: {
+                bank: dto.bank || "-",
+                accountNo: dto.accountNo || "-",
+                promtpayId: dto.promtpayId || "-",
+            },
+        });
+        return payments;
+    }
+
+
+    async deleteExpenseGroup(groupId: string, expenseGroupId: string) {
+        try {
+            await this.prisma.expenseGroup.deleteMany({
+                where: {
+                    id: expenseGroupId,
+                    groupId: groupId,
+                },
+            });
+            return { ok: true };
+        }
+        catch (e) {
+            throw e;
+        }
+    }
 
 }
