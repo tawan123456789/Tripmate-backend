@@ -4,10 +4,13 @@ import { UpdateCarDto } from './dto/update-car.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-
+import { MinioService } from 'src/minio/minio.service';
+import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class CarService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService,
+    private minioService: MinioService,
+  ) {}
   async create(dto: CreateCarDto) {
       // ตรวจว่าศูนย์เช่ามีจริง
       const crc = await this.prisma.carRentalCenter.findUnique({
@@ -92,4 +95,32 @@ export class CarService {
           throw e;
       }
     }
+
+  async uploadCarImages(carId: string, profileImgs: Express.Multer.File[]) {
+    const car = await this.prisma.car.findUnique({ where: { id: carId } });
+    if (!car) {
+      throw new NotFoundException('Car not found');
+    }
+
+    const uploadResults: string[] = [];
+    for (const file of profileImgs) {
+      const fileName = `${uuidv4()}${file.originalname.substring(file.originalname.lastIndexOf('.'))}`;
+      const url = await this.minioService.uploadImage(file.buffer, fileName, file.mimetype);
+      uploadResults.push(url);
+    }
+    const updatedCar = await this.prisma.car.update({
+      where: { id: carId },
+      data: {
+        pictures: {
+          push: uploadResults,
+        },
+      },
+    });
+    return updatedCar;
+  }
+
+
+
+
+
 }

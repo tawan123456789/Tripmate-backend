@@ -2,7 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { RoomService } from './room.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
-
+import { UseInterceptors } from '@nestjs/common/decorators';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { UploadedFiles } from '@nestjs/common/decorators';
+import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 @Controller('room')
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
@@ -33,5 +36,28 @@ export class RoomController {
   ) 
   {
     return this.roomService.remove(id,hotel_id);
+  }
+
+  @Post('upload/:hotelId/:roomId')
+  @UseInterceptors(FilesInterceptor('profileImg', 10))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        profileImg: {
+          type: 'array',
+          items: { type: 'string', format: 'binary' },
+        },
+      },
+      required: ['profileImg'],
+    },
+  })
+  uploadRoomImages(
+    @Param('roomId') roomId: string,
+    @Param('hotelId') hotelId: string,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    return this.roomService.uploadRoomImages(roomId, hotelId, files);
   }
 }

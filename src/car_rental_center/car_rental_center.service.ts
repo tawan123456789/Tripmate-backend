@@ -4,10 +4,13 @@ import { UpdateCarRentalCenterDto } from './dto/update-car_rental_center.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { CreateCarDto } from 'src/car/dto/create-car.dto';
-
+import { MinioService } from 'src/minio/minio.service';
+import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class CarRentalCenterService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService,
+    private readonly minioService: MinioService
+  ) {}
   async create(dto: CreateCarRentalCenterDto) {
     try {
           return await this.prisma.carRentalCenter.create({
@@ -82,5 +85,27 @@ async findOne(id: string) {
       }
       throw e;
     }
+  }
+
+  async uploadCarImages(carId: string, profileImgs: Express.Multer.File[]) {
+    const car = await this.prisma.carRentalCenter.findUnique({ where: { id: carId } });
+    if (!car) {
+      throw new NotFoundException('Car not found');
+    }
+    const uploadResults: string[] = [];
+    for (const file of profileImgs) {
+      const fileName = `${uuidv4()}${file.originalname.substring(file.originalname.lastIndexOf('.'))}`;
+      const url = await this.minioService.uploadImage(file.buffer, fileName, file.mimetype);
+      uploadResults.push(url);
+    }
+    const updatedCar = await this.prisma.carRentalCenter.update({
+      where: { id: carId },
+      data: {
+        pictures: {
+          push: uploadResults,
+        },
+      },
+    });
+    return updatedCar;
   }
 }
