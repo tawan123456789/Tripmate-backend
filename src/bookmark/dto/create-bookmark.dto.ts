@@ -1,7 +1,14 @@
+import { IsString, IsOptional } from 'class-validator';
+
 export class CreateBookmarkDto {
-    id: string;
+    @IsString()
     serviceId: string;
-    userId: string
+
+    @IsString()
+    userId: string;
+
+    @IsOptional()
+    @IsString()
     status?: string;
 }
 

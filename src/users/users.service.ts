@@ -11,7 +11,7 @@ export class UsersService {
   constructor(
     private prisma: PrismaService,
     private minioService: MinioService,
-  ) {}
+  ) { }
 
   async create(dto: CreateUserDto) {
     try {
@@ -34,7 +34,7 @@ export class UsersService {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
         throw new ConflictException('user email already exists');
       }
-      else if( e instanceof Prisma.PrismaClientKnownRequestError ) {
+      else if (e instanceof Prisma.PrismaClientKnownRequestError) {
         console.log(e);
       }
       throw e;
@@ -46,12 +46,12 @@ export class UsersService {
     const pageSize = Math.min(100, Math.max(1, params.pageSize ?? 20));
     const where: Prisma.UserWhereInput = params.q
       ? {
-          OR: [
-            { fname: { contains: params.q, mode: 'insensitive' } },
-            { lname: { contains: params.q, mode: 'insensitive' } },
-            { email: { contains: params.q, mode: 'insensitive' } },
-          ],
-        }
+        OR: [
+          { fname: { contains: params.q, mode: 'insensitive' } },
+          { lname: { contains: params.q, mode: 'insensitive' } },
+          { email: { contains: params.q, mode: 'insensitive' } },
+        ],
+      }
       : {};
 
     const [total, data] = await this.prisma.$transaction([
@@ -70,21 +70,68 @@ export class UsersService {
     };
   }
 
-  async findOne(id: string) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
-    if (!user) throw new NotFoundException('user not found');
-    const userProfile: ProfileUserDto = {
-      username: user.username,
-      fname: user.fname,
-      lname: user.lname,
-      birthDate: user.birthDate ? user.birthDate.toISOString() : undefined,
-      phone: user.phone ? user.phone : undefined,
-      email: user.email,
-      gender: user.gender,
-      profileImg: user.profileImg ? user.profileImg : undefined,  
-    };
+  async findOne(id: string, req: any) {
 
-    return userProfile;
+    console.log('Req id:', req.user?.id);
+    console.log('req role:', req.user?.role);
+    if (req.user?.id == id) {
+          const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('user not found');
+      const userProfile= {
+        username: user.username,
+        fname: user.fname,
+        lname: user.lname,
+        birthDate: user.birthDate ? user.birthDate.toISOString() : undefined,
+        phone: user.phone ? user.phone : undefined,
+        email: user.email,
+        gender: user.gender,
+        profileImg: user.profileImg ? user.profileImg : undefined,
+      };
+      return userProfile;
+    }
+    else if (req.user?.role === 'user') {
+      const user = await this.prisma.user.findUnique({ where: { id } });
+      if (!user) throw new NotFoundException('user not found');
+
+      const tripCount = await this.prisma.tripPlan.count({
+        where: {
+          ownerId: id,
+        },
+      });
+
+      // Count bookings for groups the user is a member of
+      const memberships = await this.prisma.userJoinGroup.findMany({
+        where: { userId: id },
+        select: { groupId: true },
+      });
+      const groupIds = memberships.map((m) => m.groupId);
+      const bookingCount = groupIds.length
+        ? await this.prisma.booking.count({ where: { groupId: { in: groupIds } } })
+        : 0;
+
+      const trip = await this.prisma.tripPlan.findMany({
+        where: { ownerId: id },
+      });
+
+      
+
+      
+      const userProfile = {
+        username: user.username,
+        fname: user.fname,
+        lname: user.lname,
+        birthDate: user.birthDate ? user.birthDate.toISOString() : undefined,
+        phone: user.phone ? user.phone : undefined,
+        email: user.email,
+        gender: user.gender,
+        profileImg: user.profileImg ? user.profileImg : undefined,
+        tripCount: tripCount,
+        bookingCount: bookingCount,
+        trip: trip,
+      };
+      return userProfile;
+    }
+
   }
 
   async update(id: string, dto: UpdateUserDto, profileImg?: Express.Multer.File) {
@@ -145,6 +192,6 @@ export class UsersService {
     return this.prisma.user.update({
       where: { id },
       data: { password: hashedPassword },
-     });
-    }
+    });
+  }
 }

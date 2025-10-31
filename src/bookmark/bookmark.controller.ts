@@ -9,6 +9,7 @@ export class BookmarkController {
 
   @Post()
   create(@Body() createBookmarkDto: CreateBookmarkDto) {
+    console.log(createBookmarkDto.status);
     return this.bookmarkService.create(createBookmarkDto);
   }
 

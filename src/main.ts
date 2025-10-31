@@ -18,9 +18,15 @@ async function bootstrap() {
     .setTitle('Tripmate API')
     .setDescription('Tripmate backend API documentation')
     .setVersion('1.0')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'bearerAuth',
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: { persistAuthorization: true },
+  });
 
   await app.listen(Number(process.env.PORT) || 3000);
 }
