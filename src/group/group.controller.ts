@@ -3,6 +3,8 @@ import { GroupService } from './group.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { CreateExpenseGroupDto } from '../expense/dto/create-expense-group.dto';
+import { ApiProperty } from '@nestjs/swagger';
 @Controller('group')
 export class GroupController {
   constructor(private readonly groupService: GroupService) {}
@@ -44,6 +46,11 @@ export class GroupController {
     return this.groupService.findOne(id);
   }
 
+  @Get(':id/details')
+  groupDetails(@Param('id') id: string) {
+    return this.groupService.groupDetails(id);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateGroupDto: UpdateGroupDto) {
     return this.groupService.update(id, updateGroupDto);
@@ -53,4 +60,20 @@ export class GroupController {
   remove(@Param('id') id: string) {
     return this.groupService.remove(id);
   }
+
+  @Post('/expense-group/create')
+  createExpenseGroup(@Body() createExpenseGroupDto: CreateExpenseGroupDto) {
+    return this.groupService.createExpenseGroup(createExpenseGroupDto);
+  }
+
+  @Get('/:groupId/expense-groups')
+  getExpenseGroups(@Param('groupId') groupId: string) {
+    return this.groupService.getExpenseGroups(groupId);
+  }
+
+  @Get('/:groupId/expense-summary')
+  getExpenseSummary(@Param('groupId') groupId: string) {
+    return this.groupService.getExpenseSummary(groupId);
+  }
+
 }
