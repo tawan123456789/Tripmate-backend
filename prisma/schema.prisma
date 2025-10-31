@@ -32,6 +32,8 @@ model User {
   memberOf       UserJoinGroup[]
   services       UserService[]   @relation("ServiceOwner")
   transactions   Transaction[]
+  expenses    ExpenseGroup[]
+  expenseSpliters ExpenseSpliter[]
 
   @@map("User")
 }
@@ -51,9 +53,45 @@ model Group {
   owner       User            @relation("GroupOwner", fields: [ownerId], references: [id])
   tripPlans   TripPlan?       @relation(fields: [tripPlansId], references: [id])
   members     UserJoinGroup[]
+  expenses    ExpenseGroup[]
 
   @@index([ownerId])
   @@map("Group")
+}
+
+model ExpenseGroup {
+  id        String   @id @map("expense_group_id")
+  groupId   String   @map("group_id")
+  userId    String   @map("user_id") @db.Uuid
+  amount    Decimal? @db.Decimal(10, 2)
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+
+  spliters  ExpenseSpliter[]
+  @@index([groupId])
+  @@index([userId])
+  @@map("ExpenseGroup")
+
+}
+
+model ExpenseSpliter{
+  id               String        @id @map("expense_spliter_id")
+  expenseGroupId  String        @map("expense_group_id")
+  userId          String        @map("user_id") @db.Uuid
+  status          String?
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime?     @updatedAt @map("updated_at")
+  expenseGroup   ExpenseGroup  @relation(fields: [expenseGroupId], references: [id], onDelete: Cascade)
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expenseGroupId])
+  @@index([userId])
+  @@map("ExpenseSpliter")
+
 }
 
 model UserJoinGroup {
