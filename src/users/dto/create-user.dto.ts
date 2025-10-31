@@ -31,6 +31,7 @@ export class CreateUserDto {
 
 
 export class ProfileUserDto {
+  @IsString() username: string;
   @IsString() fname: string;
   @IsString() lname: string;
   @IsDateString() birthDate?: string; // ส่งเป็น ISO string

@@ -74,6 +74,7 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('user not found');
     const userProfile: ProfileUserDto = {
+      username: user.username,
       fname: user.fname,
       lname: user.lname,
       birthDate: user.birthDate ? user.birthDate.toISOString() : undefined,
