@@ -171,6 +171,11 @@ model Place {
   name        String
   description String?
   placeImg    String?    @map("place_img")
+  status      String?
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime?  @updatedAt @map("updated_at")
+  deletedAt   DateTime?  @map("deleted_at")
+  isAttraction Boolean?  @map("is_attraction")
   location    Location?  @relation(fields: [locationId], references: [id])
   tripUnits   TripUnit[]
 
