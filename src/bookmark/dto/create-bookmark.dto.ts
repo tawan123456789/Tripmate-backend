@@ -1,10 +1,13 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsOptional } from 'class-validator';
 
 export class CreateBookmarkDto {
     @IsString()
+    @ApiProperty()
     serviceId: string;
 
     @IsString()
+    @ApiProperty()
     userId: string;
 
     @IsOptional()
