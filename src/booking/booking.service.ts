@@ -12,10 +12,7 @@ import { UpdateBookingDto } from './dto/update-booking.dto';
 @Injectable()
 export class BookingService {
   constructor(private prisma: PrismaService) {}
-
-  /**
-   * ✅ makeBooking — สร้างการจองใหม่
-   */
+  
   async makeBooking(dto: CreateBookingDto) {
     try {
       // 1️⃣ ตรวจสอบว่ามี service และ group ที่จะอ้างอิงจริงไหม
