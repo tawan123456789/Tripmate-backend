@@ -2,7 +2,7 @@
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class CreateTripDto {}
+// Original CreateTripDto declaration removed
 
 export enum TripEventType {
   Place = 'place',
@@ -114,3 +114,5 @@ export class CreateTripPlanDto {
   @ApiProperty({ type: [CreateTripPlanDayDto] })
   days: CreateTripPlanDayDto[];
 }
+
+export class CreateTripDto extends CreateTripPlanDto {}
