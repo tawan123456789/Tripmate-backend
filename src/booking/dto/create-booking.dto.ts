@@ -52,6 +52,7 @@ export class CreateBookingDto {
   // หากใช้ UUID จริง ให้เปลี่ยนเป็น @IsUUID()
   @IsString()
   serviceId!: string;
+  subServiceId?: string;
 
   @IsString()
   groupId!: string;
@@ -64,7 +65,7 @@ export class CreateBookingDto {
   @Type(() => Date)
   @IsDate()
   @IsAfter('startBookingDate', { message: 'endBookingDate must be >= startBookingDate' })
-  endBookingDate?: Date;
+  endBookingDate!: Date;
 
   @IsOptional()
   @IsString()

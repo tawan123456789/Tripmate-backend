@@ -8,11 +8,63 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
+import { start } from 'repl';
+import { Decimal } from '@prisma/client/runtime/library';
+
+
 
 @Injectable()
 export class BookingService {
   constructor(private prisma: PrismaService) {}
-  
+
+  private servicePrice = async (serviceId: string, start: Date, end: Date, subServiceId?: string): Promise<number> => {
+    let price = 0;
+    const service = await this.prisma.userService.findUnique({ where: { id: serviceId } });
+    const diffMs = end.getTime() - start.getTime();
+    const totalHours = diffMs / (1000 * 60 * 60);
+    if (service?.type === "guide") {
+    const guide = await this.prisma.guide.findUnique({ where: { id: serviceId } });
+
+    if (!guide) throw new Error(`Guide not found for serviceId ${serviceId}`);
+    if (guide.hourlyRate == null) throw new Error(`Guide hourlyRate not set`);
+    const rate: number = guide.hourlyRate.toNumber();
+    price = rate * totalHours;
+    }
+    else if(service?.type == "car_rental_center"){
+      const carRental = await this.prisma.carRentalCenter.findUnique({ where: { id: serviceId } });
+      const car = await this.prisma.car.findFirst({
+        where: {
+          id: subServiceId,
+          crcId: serviceId, // ต้องตรงกับ CarRentalCenter ID
+        },
+      });
+      if(!car) throw new Error(`Car not found for subServiceId ${subServiceId}`);
+      if (!carRental) throw new Error(`Car Rental Center not found for serviceId ${serviceId}`);
+      if (car.pricePerDay == null) throw new Error(`Car pricePerDay not set`);
+      const rate: number = car.pricePerDay.toNumber();
+      const totalDays = Math.ceil(totalHours / 24);
+      price = rate * totalDays;
+    }
+    else if(service?.type == "hotel"){
+      const hotel = await this.prisma.hotel.findUnique({ where: { id: serviceId } });
+      const room = await this.prisma.room.findFirst({
+        where: {
+          id: subServiceId,
+          hotelId: serviceId,
+        },
+      });
+      if (!hotel) throw new Error(`Hotel not found for serviceId ${serviceId}`);
+      if(!room) throw new Error(`Room not found for subServiceId ${subServiceId}`);
+      if (room.pricePerNight == null) throw new Error(`Room pricePerNight not set`);
+      const rate: number = room.pricePerNight.toNumber();
+      const startDateOnly = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+      const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+      const diffDays = Math.floor((endDateOnly.getTime() - startDateOnly.getTime()) / (1000 * 60 * 60 * 24));
+      price = rate * diffDays;
+    }
+    return price;
+  };
+
   async makeBooking(dto: CreateBookingDto) {
     try {
       // 1️⃣ ตรวจสอบว่ามี service และ group ที่จะอ้างอิงจริงไหม
@@ -43,9 +95,11 @@ export class BookingService {
         data: {
           serviceId: dto.serviceId,
           groupId: dto.groupId,
+          subServiceId: dto.subServiceId,
           startBookingDate: dto.startBookingDate,
           endBookingDate: dto.endBookingDate,
           note: dto.note,
+          price: await this.servicePrice(dto.serviceId, dto.startBookingDate, dto.endBookingDate, dto.subServiceId),
           status: dto.status ?? 'pending',
         },
         include: {
