@@ -17,6 +17,11 @@ export class TripController {
     return this.tripService.findAll();
   }
 
+  @Get('public')
+  public() {
+    return this.tripService.publicTrip();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.tripService.findOne(id);
@@ -32,10 +37,6 @@ export class TripController {
     return this.tripService.remove(+id);
   }
 
-  // @Get('public')
-  // public() {
-  //   return this.tripService.public();
-  // }
 
 
 
