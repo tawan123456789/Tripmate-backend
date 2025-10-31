@@ -1,52 +1,85 @@
-import { Injectable } from '@nestjs/common';
-import { CreateHotelDto } from './dto/create-hotel.dto';
-import { UpdateHotelDto } from './dto/update-hotel.dto';
-import { PrismaService } from '../prisma/prisma.service';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { CreateRoomDto } from '../room/dto/create-room.dto';
+import { CreateHotelDto } from './dto/create-hotel.dto';
+import { CreateRoomDto } from 'src/room/dto/create-room.dto';
 
 @Injectable()
 export class HotelService {
   constructor(private prisma: PrismaService) {}
+
+  private toDecimalOrNull(v?: number | null) {
+    if (v === null || v === undefined) return null;
+    // ตัดทศนิยมตามสเปค Decimal(3,1) เผื่อส่ง 9.99 เข้ามา
+    const fixed = Math.round(v * 10) / 10;
+    return new Prisma.Decimal(fixed);
+  }
+
   async create(dto: CreateHotelDto) {
-      try {
-        return await this.prisma.hotel.create({
-          data: {
-            id: dto.serviceId,
-            name: dto.name,
-            // type: dto.type,
-            // star: dto.star,
-            description: dto.description,
-            image: dto.image,
-            // pictures: dto.pictures,               // [] ถ้าไม่ส่ง Prisma จะใส่ default
-            facility: dto.facility,
-            // facilities: dto.facilities as any,    // Json
-            rating: dto.rating != null ? new Prisma.Decimal(dto.rating) : null,
-            // checkIn: dto.checkIn,
-            // checkOut: dto.checkOut,
-            // breakfast: dto.breakfast,
-            // petAllow: dto.petAllow,
-            // contact: dto.contact,
-            // subtopicRatings: dto.subtopicRatings as any, // Json
-            // locationSummary: dto.locationSummary,
-            // nearbyLocations: dto.nearbyLocations, // [] by default
-                },
-        });
-      } catch (e) {
-        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
-          throw new ConflictException('hotel id user email already exists');
-        }
-        else if( e instanceof Prisma.PrismaClientKnownRequestError ) {
-          console.log(e);
-        }
-        throw e;
+    try {
+      // (ทางเลือก) ตรวจว่ามี service ต้นทางจริงไหม ถ้าต้องการบังคับความถูกต้อง:
+      const service = await this.prisma.userService.findUnique({
+        where: { id: dto.serviceId },
+        select: { id: true },
+      });
+      if (!service) {
+        throw new NotFoundException('Service not found');
       }
+
+      return await this.prisma.hotel.create({
+        data: {
+          id: dto.serviceId,                 // ใช้ serviceId เป็น id โรงแรม
+          name: dto.name,
+
+          // optional primitives
+          type: dto.type ?? undefined,
+          star: dto.star ?? undefined,
+          description: dto.description ?? undefined,
+          image: dto.image ?? undefined,
+
+          // arrays — ถ้าไม่ส่ง ปล่อย undefined เพื่อให้ Prisma ใช้ค่า default ใน schema
+          pictures: dto.pictures ?? undefined,
+          nearbyLocations: dto.nearbyLocations ?? undefined,
+
+          // legacy string
+          facility: dto.facility ?? undefined,
+
+          // JSON fields
+          facilities: dto.facilities as any,          // Prisma.JsonValue
+          subtopicRatings: dto.subtopicRatings as any,
+
+          // Decimal(3,1)
+          rating: this.toDecimalOrNull(dto.rating),
+
+          // policy / misc
+          checkIn: dto.checkIn ?? undefined,
+          checkOut: dto.checkOut ?? undefined,
+          breakfast: dto.breakfast ?? undefined,
+          petAllow:
+            typeof dto.petAllow === 'boolean' ? dto.petAllow : undefined,
+          contact: dto.contact ?? undefined,
+          locationSummary: dto.locationSummary ?? undefined,
+        },
+      });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        // unique key ซ้ำ (เช่น id ซ้ำ)
+        throw new ConflictException('hotel id already exists');
+      }
+      throw e;
     }
+  }
   
 
   findAll() {
-    return `This action returns all hotel`;
+    return this.prisma.hotel.findMany();
   }
 
   async findOne(id: string) {

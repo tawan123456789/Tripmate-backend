@@ -34,13 +34,15 @@ async createHotelService(
       const service = await tx.userService.create({
         data: {
           id: dto.id,                    // ถ้า schema คุณไม่มี @default(uuid()) ต้องส่งเสมอ
-          ownerId: dto.ownerId,
-          locationId: dto.locationId,    // ถ้าเป็น optional/nullable อย่าลืมปรับ schema ให้เป็น String?
+          // ownerId: dto.ownerId,
+          // locationId: dto.locationId,  // ถ้าเป็น optional/nullable อย่าลืมปรับ schema ให้เป็น String?
           name: dto.name,
           description: dto.description,
           serviceImg: dto.serviceImg,
           status: dto.status,
           type: 'hotel',
+          owner: { connect: { id: dto.ownerId } },
+          location: dto.locationId ? { connect: { id: dto.locationId } } : undefined,
         },
       });
 
@@ -128,13 +130,13 @@ async createHotelService(
         const service = await tx.userService.create({
           data: {
             id: dto.id, // Prisma ของคุณต้องการ id ชัดเจน (ไม่มี default)
-            ownerId: dto.ownerId,
-            locationId: dto.locationId,
             name: dto.name,
             description: dto.description,
             serviceImg: dto.serviceImg,
             status: dto.status,
             type: 'restaurant',
+            owner: { connect: { id: dto.ownerId } },
+            location: dto.locationId ? { connect: { id: dto.locationId } } : undefined,
           },
         });
 
@@ -227,13 +229,13 @@ async createHotelService(
         const service = await tx.userService.create({
           data: {
             id: dto.id,                 // ถ้า schema มี @default(uuid()) จะละได้
-            ownerId: dto.ownerId,
-            locationId: dto.locationId,
             name: dto.name,
             description: dto.description,
             serviceImg: dto.serviceImg,
             status: dto.status,
             type: 'car_rental_center',  // หรือ 'car_rental' ตาม schema ของคุณ
+            owner: { connect: { id: dto.ownerId } },
+            location: dto.locationId ? { connect: { id: dto.locationId } } : undefined,
           },
         });
 
@@ -317,12 +319,12 @@ async createHotelService(
         const service = await tx.userService.create({
           data: {
             id: dto.id,                 // ถ้ามี @default(uuid()) จะละได้
-            ownerId: dto.ownerId,
-            locationId: dto.locationId,
             name: dto.name,
             description: dto.description,
             serviceImg: dto.serviceImg,
             status: dto.status,
+            owner: { connect: { id: dto.ownerId } },
+            location: dto.locationId ? { connect: { id: dto.locationId } } : undefined,
             type: 'guide',
           },
         });

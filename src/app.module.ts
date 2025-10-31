@@ -25,6 +25,7 @@ import { TripPlanModule } from './trip_plan/trip_plan.module';
 import { PlanUnitModule } from './plan_unit/plan_unit.module';
 import { SearchModule } from './search_service/search.module';
 import { BookingModule } from './booking/booking.module';
+import { PlaceModule } from './place/place.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { BookingModule } from './booking/booking.module';
     PlanUnitModule,
     SearchModule,
     BookingModule,
+    PlaceModule,
 
   ],
   controllers: [AppController],

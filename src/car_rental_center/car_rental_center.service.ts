@@ -30,12 +30,12 @@ export class CarRentalCenterService {
   }
 
   findAll() {
-    return `This action returns all carRentalCenter`;
+    return this.prisma.carRentalCenter.findMany();
   }
 
 async findOne(id: string) {
     const crc = await this.prisma.carRentalCenter.findUnique({ where: { id } });
-    if (!crc) throw new NotFoundException('user not found');
+    if (!crc) throw new NotFoundException('Rental center not found');
     return crc;
   }
 
