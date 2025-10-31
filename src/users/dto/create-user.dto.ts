@@ -1,4 +1,14 @@
-import { IsEmail, IsOptional, IsString, IsDateString, MinLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, IsDateString, MinLength, IsEnum } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+
+export enum Role {
+  ADMIN = 'admin',
+  USER = 'user',
+  HOTEL_MANAGER = 'hotel-manager',
+  CAR_MANAGER = 'car-manager',
+  RESTAURANT_MANAGER = 'restaurant-manager',
+  GUIDE = 'guide',
+}
 
 export class CreateUserDto {
   @IsString() fname: string;
@@ -7,7 +17,7 @@ export class CreateUserDto {
 
   @IsOptional() @IsDateString() birthDate?: string; // ส่งเป็น ISO string
 
-  @IsOptional() @IsString() role?: string;
+  @IsOptional() @IsEnum(Role) role?: Role;
 
   @IsEmail() email: string;
 

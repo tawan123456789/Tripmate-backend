@@ -4,7 +4,10 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import {CreateUserDto} from '../users/dto/create-user.dto';
+import { ApiTags, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { RegisterWithFileDto } from './dto/register.dto';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService
@@ -13,6 +16,8 @@ export class AuthController {
 
   @Post('register')
   @UseInterceptors(FileInterceptor('profileImg'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: RegisterWithFileDto })
   async register(
     @Body() createUserDto: CreateUserDto,
     @UploadedFile() profileImg?: Express.Multer.File
@@ -21,6 +26,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiBody({ type: LoginDto })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
