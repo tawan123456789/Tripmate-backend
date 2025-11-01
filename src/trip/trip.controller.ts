@@ -3,6 +3,9 @@ import { TripService } from './trip.service';
 import { CreateTripDto ,CreateTripPlanDto} from './dto/create-trip.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
 import { ApiBody } from '@nestjs/swagger';
+import { FrontCreateTripPayloadDto } from './dto/front-trip.dto';
+import { ApiOperation } from '@nestjs/swagger';
+import { Req, BadRequestException } from '@nestjs/common';
 @Controller('trip')
 export class TripController {
   constructor(private readonly tripService: TripService) {}
@@ -38,7 +41,20 @@ export class TripController {
     return this.tripService.remove(+id);
   }
 
+  @Post('frontend')
+  @ApiOperation({ summary: 'Create trip from frontend payload' })
+  @ApiBody({ type: FrontCreateTripPayloadDto })
+  async createFromFrontend(@Body() payload: FrontCreateTripPayloadDto, @Req() req: any) {
+    const ownerId = payload.ownerId ?? req?.user?.id;
+    if (!ownerId) throw new BadRequestException('ownerId is required');
+    return this.tripService.createFromFrontPayload({ ...payload, ownerId });
+  }
 
+  @Get(':id/frontend')
+  @ApiOperation({ summary: 'Get trip as frontend shape' })
+  async getAsFrontend(@Param('id') id: string) {
+    return this.tripService.getTripAsFrontShape(id);
+  }
 
 
 
