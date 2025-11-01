@@ -31,4 +31,7 @@ export class TripPlanController {
   remove(@Param('id') id: string) {
     return this.tripPlanService.remove(id);
   }
+
+
+
 }

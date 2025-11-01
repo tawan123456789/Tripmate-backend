@@ -154,6 +154,19 @@ export class TripService {
     return trips;
   }
 
+  async setPrivateTripPlan(id: string, status: string) {
+    const existing = await this.prisma.tripPlan.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException('Trip not found');
+    }
+    return this.prisma.tripPlan.update({
+      where: { id },
+      data: {
+        status: status,
+      },
+    });
+  }
+
   async createFromFrontPayload(payload: FrontCreateTripPayloadDto & { ownerId: string }) {
     if (!payload.ownerId) throw new BadRequestException('ownerId is required');
     if (!payload.title) throw new BadRequestException('title is required');
