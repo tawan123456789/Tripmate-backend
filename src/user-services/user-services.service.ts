@@ -401,8 +401,9 @@ async createHotelService(
   
 
   findAll() {
-    return `This action returns all userServices`;
+    return this.prisma.userService.findMany();
   }
+
 
   async findOne(id: string) {
     const user = await this.prisma.userService.findUnique({ where: { id } });
@@ -451,6 +452,10 @@ async createHotelService(
   }
   async findByOwner(ownerId: string) {
     return this.prisma.userService.findMany({ where: { ownerId } });
+  }
+
+  async findByType(type: string) {
+    return this.prisma.userService.findMany({ where: { type } });
   }
 
 

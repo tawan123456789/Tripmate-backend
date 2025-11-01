@@ -8,6 +8,10 @@ import { CreateCarRentalCenterDto } from 'src/car_rental_center/dto/create-car_r
 import { CreateGuideDto } from 'src/guide/dto/create-guide.dto';
 import { ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { Req, Query } from '@nestjs/common';
 class CreateRestaurantRequest {
   @ValidateNested() @Type(() => CreateUserServiceDto)
   dto!: CreateUserServiceDto;
@@ -65,6 +69,19 @@ export class UserServicesController {
     return this.userServicesService.findAll();
   }
 
+  @Get('owner')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('bearerAuth')
+  findByOwner(@Req() req) {
+    const id = req.user.id;
+    return this.userServicesService.findByOwner(id);
+  }
+
+  @Get('type')
+  findByType(@Query('type') type: string) {
+    return this.userServicesService.findByType(type);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userServicesService.findOne(id);
@@ -79,4 +96,6 @@ export class UserServicesController {
   remove(@Param('id') id: string) {
     return this.userServicesService.remove(id);
   }
+
+
 }

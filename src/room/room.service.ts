@@ -48,28 +48,37 @@ export class RoomService {
     }
   
 
-  // async update(id: string, hotel_id: string, dto: UpdateRoomDto) {
-  //   const existing = await this.prisma.room.findUnique({ where: { id_hotelId: {id: id ,hotelId: hotel_id} } });
-  //       if (!existing) {
-  //           throw new NotFoundException('Room not found');
-  //       }
-  //       return this.prisma.room.update({
-  //           where: { id_hotelId: {id: id ,hotelId: hotel_id} },
-  //           data: {
-  //             id: dto.id,
-  //             hotelId: dto.hotelId,
-  //             pricePerNight: dto.pricePerNight,
-  //             bedType: dto.bedType,
-  //             personPerRoom: dto.personPerRoom,
-  //             description: dto.description,
-  //             image: dto.image,
-  //         },
-  //       });
-  //   }
-  
-    async remove(id: string, hotel_id: string) {
+    async update(id: string, hotelId: string, dto: UpdateRoomDto) {
       try {
-          await this.prisma.room.delete({ where: { id_hotelId: {id: id,hotelId: hotel_id} } });
+        return await this.prisma.room.update({
+          where: { id_hotelId: { id, hotelId } },   // ✅ ใช้ composite PK
+          data: {
+            name: dto.name ?? undefined,
+            description: dto.description ?? undefined,
+            image: dto.image ?? undefined,
+            bedType: dto.bedType ?? undefined,
+            personPerRoom: dto.personPerRoom ?? undefined,
+            sizeSqm: dto.sizeSqm ?? undefined,
+            facilities: dto.facilities ?? undefined,   // string[] | undefined
+            pictures: dto.pictures ?? undefined,       // string[] | undefined
+            pricePerNight:
+              dto.pricePerNight != null
+                ? new Prisma.Decimal(dto.pricePerNight)  // number | string -> Decimal
+                : undefined,                              // ไม่ส่ง = ไม่แก้
+          },
+        });
+      } catch (e) {
+        // ถ้าไม่พบ record จะได้ P2025
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
+          throw new NotFoundException('Room not found');
+        }
+        throw e;
+      }
+    }
+
+    async remove(id: string, hotelId: string) {
+      try {
+          await this.prisma.room.delete({ where: { id_hotelId: { id, hotelId } } });
           return { ok: true };
       } catch (e) {
           if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
