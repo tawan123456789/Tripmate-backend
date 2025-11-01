@@ -10,25 +10,25 @@ import { NotFoundException } from '@nestjs/common';
 export class ReviewService {
   constructor(private prisma: PrismaService) {}
       
-      async create(dto: CreateReviewDto) {
-          try {
-              return await this.prisma.review.create({
-                  data: {
-                    id: dto.id,
-                    serviceId: dto.serviceId,
-                    userId: dto.userId,
-                    comment: dto.comment,
-                    score: dto.score,
-                    image: dto.image,
-                    status: dto.status,
-                  },
-              });
-          } catch (e) {
-              if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
-                  throw new ConflictException('review ID ถูกใช้งานแล้ว');
-              }
-                  }
-      }
+    //   async create(dto: CreateReviewDto) {
+    //       try {
+    //           return await this.prisma.review.create({
+    //               data: {
+    //                 id: dto.id,
+    //                 serviceId: dto.serviceId,
+    //                 userId: dto.userId,
+    //                 comment: dto.comment,
+    //                 score: dto.score,
+    //                 image: dto.image,
+    //                 status: dto.status,
+    //               },
+    //           });
+    //       } catch (e) {
+    //           if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+    //               throw new ConflictException('review ID ถูกใช้งานแล้ว');
+    //           }
+    //               }
+    //   }
 
   findAll() {
     return `This action returns all review`;
@@ -40,24 +40,24 @@ async findOne(id: string) {
           return location;
     }
   
-    async update(id: string, dto: UpdateReviewDto) {
-      const existing = await this.prisma.review.findUnique({ where: { id } });
-          if (!existing) {
-              throw new NotFoundException('Location not found');
-          }
-          return this.prisma.review.update({
-              where: { id },
-              data: {
-                id: dto.id,
-                serviceId: dto.serviceId,
-                userId: dto.userId,
-                comment: dto.comment,
-                score: dto.score,
-                image: dto.image,
-                status: dto.status,
-            },
-          });
-    }
+    // async update(id: string, dto: UpdateReviewDto) {
+    //   const existing = await this.prisma.review.findUnique({ where: { id } });
+    //       if (!existing) {
+    //           throw new NotFoundException('Location not found');
+    //       }
+    //       return this.prisma.review.update({
+    //           where: { id },
+    //           data: {
+    //             id: dto.id,
+    //             serviceId: dto.serviceId,
+    //             userId: dto.userId,
+    //             comment: dto.comment,
+    //             score: dto.score,
+    //             image: dto.image,
+    //             status: dto.status,
+    //         },
+    //       });
+    // }
   
     async remove(id: string) {
       try {
