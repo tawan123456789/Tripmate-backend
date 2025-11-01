@@ -1,57 +1,34 @@
-import { Transform } from 'class-transformer';
-import { IsBooleanString, IsIn, IsNumberString, IsOptional, IsString } from 'class-validator';
-
-export type SortOrder = 'asc' | 'desc';
-
 export class SearchQueryDto {
-  @IsOptional() @IsString()
+  /** 🔍 คำค้นหา (Keyword) */
   q?: string;
 
-  @IsOptional() @IsNumberString()
-  page?: string; // default 1
+  /** 🔢 หน้า (เริ่มจาก 1) */
+  page?: number;
 
-  @IsOptional() @IsNumberString()
-  pageSize?: string; // default 20
+  /** 🔢 จำนวนข้อมูลต่อหน้า */
+  pageSize?: number;
 
-  @IsOptional() @IsString()
-  @IsIn(['price', 'rating', 'distance', 'name', 'createdAt'])
-  sortBy?: 'price' | 'rating' | 'distance' | 'name' | 'createdAt';
+  /** 🏷️ สิ่งอำนวยความสะดวก (Amenities) เช่น "wifi,parking" */
+  amenities?: string | string[];
 
-  @IsOptional() @IsString()
-  @IsIn(['asc', 'desc'])
-  sortOrder?: SortOrder;
+  /** 💬 ภาษา เช่น "English,Thai" */
+  language?: string | string[];
 
-  // range filters
-  @IsOptional() @IsNumberString()
-  priceMin?: string;
+  /** 💬 โหมดการกรองภาษา ('any' = อย่างน้อยหนึ่ง, 'all' = ต้องมีทุกภาษา) */
+  languageMode?: 'any' | 'all';
 
-  @IsOptional() @IsNumberString()
-  priceMax?: string;
+  /** 💸 ราคาต่ำสุด */
+  priceMin?: number;
 
-  @IsOptional() @IsNumberString()
-  ratingMin?: string;
+  /** 💸 ราคาสูงสุด */
+  priceMax?: number;
 
-  // amenities=wifi,parking,pool
-  @IsOptional() @IsString()
-  @Transform(({ value }) => (typeof value === 'string' ? value.split(',').map((s:string)=>s.trim()).filter(Boolean) : []))
-  amenities?: string[] | string;
+  /** ⭐ เรตติ้งขั้นต่ำ */
+  ratingMin?: number;
 
-  // geofilter
-  @IsOptional() @IsString()
-  lat?: string;
-  @IsOptional() @IsString()
-  lng?: string;
-  @IsOptional() @IsNumberString()
-  radiusKm?: string;
+  /** 📊 ฟิลด์ที่ใช้เรียง เช่น "price" | "rating" | "name" | "createdAt" */
+  sortBy?: string;
 
-  // availability window
-  @IsOptional() @IsString()
-  startDate?: string;
-
-  @IsOptional() @IsString()
-  endDate?: string;
-
-  // open now (ถ้ามีฟิลด์เวลาเปิด-ปิด)
-  @IsOptional() @IsBooleanString()
-  openNow?: string;
+  /** ⬆⬇ ลำดับการเรียง ('asc' | 'desc') */
+  sortOrder?: 'asc' | 'desc';
 }
