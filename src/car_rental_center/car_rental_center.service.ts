@@ -98,12 +98,12 @@ export class CarRentalCenterService {
     }
   }
 
-  findAll() {
-    return this.prisma.carRentalCenter.findMany({include: { cars: true, service: {include: { reviews: true,location: true } } }});
+  findAll(req: any) {
+    return this.prisma.carRentalCenter.findMany({include: { cars: true, service: {include: { reviews: true,location: true, bookmarks: {where : { userId: req.query.userId } } } } }});
   }
 
-async findOne(id: string) {
-    const crc = await this.prisma.carRentalCenter.findUnique({ where: { id },include: { cars: true, service: {include: { reviews: true,location: true } } } });
+async findOne(id: string, req: any) {
+    const crc = await this.prisma.carRentalCenter.findUnique({ where: { id },include: { cars: true, service: {include: { reviews: true,location: true, bookmarks: {where : { userId: req.query.userId } } } } } });
     if (!crc) throw new NotFoundException('Rental center not found');
     return crc;
   }

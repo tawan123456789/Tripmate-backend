@@ -7,6 +7,7 @@ import { UseInterceptors } from '@nestjs/common/decorators';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { UploadedFiles } from '@nestjs/common/decorators';
 import { ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { Req } from '@nestjs/common/decorators';
 
 @Controller('hotel')
 export class HotelController {
@@ -18,19 +19,19 @@ export class HotelController {
   }
 
   @Get()
-  findAll() {
-    return this.hotelService.findAll();
+  findAll(@Req() req: any) {
+    return this.hotelService.findAll(req);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.hotelService.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    return this.hotelService.findOne(id, req);
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateHotelDto: UpdateHotelDto) {
-  //   return this.hotelService.update(id, updateHotelDto);
-  // }
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateHotelDto: UpdateHotelDto) {
+    return this.hotelService.update(id, updateHotelDto);
+  }
 
   @Delete(':id')
   remove(@Param('id') id: string) {

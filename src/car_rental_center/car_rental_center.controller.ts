@@ -4,7 +4,7 @@ import { CreateCarRentalCenterDto } from './dto/create-car_rental_center.dto';
 import { UpdateCarRentalCenterDto } from './dto/update-car_rental_center.dto';
 import { CreateCarDto } from 'src/car/dto/create-car.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UseInterceptors, UploadedFile } from '@nestjs/common/decorators';
+import { UseInterceptors, UploadedFile, Req } from '@nestjs/common/decorators';
 import { ApiBody, ApiConsumes,ApiProperty } from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
 @Controller('car-rental-center')
@@ -17,13 +17,13 @@ export class CarRentalCenterController {
   }
 
   @Get()
-  findAll() {
-    return this.carRentalCenterService.findAll();
+  findAll(@Req() req: any) {
+    return this.carRentalCenterService.findAll(req);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.carRentalCenterService.findOne(id);
+  findOne(@Param('id') id: string,@Req() req: any) {
+    return this.carRentalCenterService.findOne(id, req);
   }
 
   @Patch(':id')

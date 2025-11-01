@@ -31,12 +31,12 @@ constructor(private prisma: PrismaService) {}
         }
       }
 
-  findAll() {
-    return this.prisma.restaurant.findMany();
+  findAll(req: any) {
+    return this.prisma.restaurant.findMany({include: { service: { include: { reviews: true, location: true, bookmarks: {where : { userId: req.query.userId } } } } }});
   }
 
-async findOne(id: string) {
-      const location = await this.prisma.restaurant.findUnique({ where: { id } });
+async findOne(id: string, req: any) {
+      const location = await this.prisma.restaurant.findUnique({ where: { id }, include: { service: { include: { reviews: true, location: true, bookmarks: {where : { userId: req.query.userId } } } } } });
           if (!location) throw new NotFoundException('Location not found');
           return location;
     }

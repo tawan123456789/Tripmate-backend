@@ -30,13 +30,13 @@ export class GuideService {
         throw e;
       }
     }
-  
-  findAll() {
-    return this.prisma.guide.findMany({include: { service: { include: { reviews: true, location: true } } }});
+
+  findAll(req: any) {
+    return this.prisma.guide.findMany({include: { service: { include: { reviews: true, location: true, bookmarks: {where : { userId: req.query.userId } } } } }});
   }
 
-  async findOne(id: string) {
-    const location = await this.prisma.guide.findUnique({ where: { id }, include: { service: { include: { reviews: true, location: true } } } });
+  async findOne(id: string, req: any) {
+    const location = await this.prisma.guide.findUnique({ where: { id }, include: { service: { include: { reviews: true, location: true, bookmarks: {where : { userId: req.query.userId } } } } } });
         if (!location) throw new NotFoundException('Guide not found');
         return location;
   }

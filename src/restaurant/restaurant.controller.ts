@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { RestaurantService } from './restaurant.service';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
+import { Req } from '@nestjs/common/decorators';
 
 @Controller('restaurant')
 export class RestaurantController {
@@ -13,13 +14,13 @@ export class RestaurantController {
   }
 
   @Get()
-  findAll() {
-    return this.restaurantService.findAll();
+  findAll(@Req() req: any) {
+    return this.restaurantService.findAll(req);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.restaurantService.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    return this.restaurantService.findOne(id, req);
   }
 
   @Patch(':id')

@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { GuideService } from './guide.service';
 import { CreateGuideDto } from './dto/create-guide.dto';
 import { UpdateGuideDto } from './dto/update-guide.dto';
-import { UseInterceptors } from '@nestjs/common/decorators';
+import { Req, UseInterceptors } from '@nestjs/common/decorators';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { UploadedFiles } from '@nestjs/common/decorators';
 import { ApiConsumes, ApiBody } from '@nestjs/swagger';
@@ -17,13 +17,13 @@ export class GuideController {
   }
 
   @Get()
-  findAll() {
-    return this.guideService.findAll();
+  findAll(@Req() req: any) {
+    return this.guideService.findAll(req);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.guideService.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    return this.guideService.findOne(id, req);
   }
 
   @Patch(':id')
