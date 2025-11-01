@@ -383,7 +383,7 @@ export class UsersService {
   async update(id: string, dto: UpdateUserDto) {
     try {
       const user = await this.prisma.user.findUnique({ where: { id } });
-
+      console.log('User to update:', dto.phone );
       return await this.prisma.user.update({
         where: { id },
         data: {
