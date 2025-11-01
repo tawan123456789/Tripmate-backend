@@ -14,6 +14,7 @@ async function bootstrap() {
     forbidNonWhitelisted: false,
     transform: true,        // แปลงชนิดตาม @Type(() => ...)
     transformOptions: { enableImplicitConversion: true },
+
   }),
 );
 

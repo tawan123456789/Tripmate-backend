@@ -5,7 +5,7 @@ import { CreateUserDto,ChangePasswordDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-
+import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -35,13 +35,12 @@ export class UsersController {
 
 
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('profileImg'))
+  @ApiBody({ type: UpdateUserDto })
   async editProfile(
     @Param('id') id: string,
     @Body() dto: UpdateUserDto,
-    @UploadedFile() profileImg?: Express.Multer.File
   ) {
-    return this.usersService.update(id, dto, profileImg);
+    return this.usersService.update(id, dto);
   }
 
   @Delete(':id')
@@ -59,7 +58,27 @@ export class UsersController {
   }
 
 
-  
+    @Post('upload/:userId')
+    @UseInterceptors(FileInterceptor('profileImg'))
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+      schema: {
+        type: 'object',
+        properties: {
+          profileImg: {
+            type: 'array',
+            items: { type: 'string', format: 'binary' }, 
+          },
+        },
+        required: ['profileImg'], 
+      },
+    })
+    uploadUserImages(
+      @Param('userId') userId: string,
+      @UploadedFile() profileImg: Express.Multer.File,
+    ) {
+      return this.usersService.uploadUserImages(userId, profileImg);
+    }
 
 
 }

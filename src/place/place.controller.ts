@@ -2,6 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { PlaceService } from './place.service';
 import { CreatePlaceDto } from './dto/create-place.dto';
 import { UpdatePlaceDto } from './dto/update-place.dto';
+import { UseInterceptors } from '@nestjs/common/decorators';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { UploadedFiles } from '@nestjs/common/decorators';
+import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 @Controller('place')
 export class PlaceController {
@@ -31,4 +35,28 @@ export class PlaceController {
   remove(@Param('id') id: string) {
     return this.placeService.remove(id);
   }
+
+  @Post('upload/:placeId')
+  @UseInterceptors(FilesInterceptor('profileImg', 10))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        profileImg: {
+          type: 'array',
+          items: { type: 'string', format: 'binary' }, 
+        },
+      },
+      required: ['profileImg'], 
+    },
+  })
+  uploadPlaceImages(
+    @Param('placeId') placeId: string,
+    @UploadedFiles() profileImgs: Express.Multer.File[],
+  ) {
+    return this.placeService.uploadPlaceImages(placeId, profileImgs);
+  }
+
+
 }
