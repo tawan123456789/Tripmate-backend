@@ -253,26 +253,26 @@ export class BookingService {
   }
 
   async cancelBooking(id: string) {
-  const booking = await this.prisma.booking.findUnique({ where: { id } });
-  if (!booking) throw new NotFoundException('Booking not found');
-  if (booking.status === 'canceled') {
-    throw new BadRequestException('Booking already canceled');
-  }
-  const updated = await this.prisma.booking.update({
-    where: { id },
-    data: {
-      status: 'canceled',
-      updatedAt: new Date(),
-    },
-    include: {
-      service: true,
-      group: true,
-    },
-  });
+    const booking = await this.prisma.booking.findUnique({ where: { id } });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.status === 'canceled') {
+      throw new BadRequestException('Booking already canceled');
+    }
+    const updated = await this.prisma.booking.update({
+      where: { id },
+      data: {
+        status: 'canceled',
+        updatedAt: new Date(),
+      },
+      include: {
+        service: true,
+        group: true,
+      },
+    });
 
-  return {
-    message: 'Booking canceled successfully',
-    booking: updated,
-  };
-}
+    return {
+      message: 'Booking canceled successfully',
+      booking: updated,
+    };
+  }
 }

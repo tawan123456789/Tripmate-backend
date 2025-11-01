@@ -7,6 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { CreateHotelDto } from './dto/create-hotel.dto';
 import { CreateRoomDto } from 'src/room/dto/create-room.dto';
+import { UpdateHotelDto } from './dto/update-hotel.dto';
 
 @Injectable()
 export class HotelService {
@@ -79,11 +80,11 @@ export class HotelService {
   
 
   findAll() {
-    return this.prisma.hotel.findMany();
+    return this.prisma.hotel.findMany({include: { rooms: true , service: { include: { reviews: true } } }});
   }
 
   async findOne(id: string) {
-    const location = await this.prisma.hotel.findUnique({ where: { id } });
+    const location = await this.prisma.hotel.findUnique({ where: { id }, include: { rooms: true, service: { include: { reviews: true } } } });
         if (!location) throw new NotFoundException('Hotel not found');
         return location;
   }

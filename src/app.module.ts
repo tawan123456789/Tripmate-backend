@@ -26,6 +26,7 @@ import { PlanUnitModule } from './plan_unit/plan_unit.module';
 import { SearchModule } from './search_service/search.module';
 import { BookingModule } from './booking/booking.module';
 import { PlaceModule } from './place/place.module';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { PlaceModule } from './place/place.module';
     SearchModule,
     BookingModule,
     PlaceModule,
+    TransactionModule,
 
   ],
   controllers: [AppController],
