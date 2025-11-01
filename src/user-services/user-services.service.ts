@@ -361,11 +361,7 @@ async createHotelService(
             policies: payload.policies as any,
 
             locationSummary: payload.locationSummary,
-            nearbyLocations: payload.nearbyLocations,
-
-            // ❗กรณี schema ของคุณไม่ได้ใช้ PK ร่วม แต่มี relation ชื่ออื่น:
-            // service: { connect: { id: service.id } },  // ใช้ถ้า Hotel/Restaurant ก็ใช้แบบนี้
-            // หรือ serviceId: service.id,               // ถ้า model ใช้ FK แยกชื่อ serviceId
+            nearbyLocations: payload.nearbyLocations,            // ถ้า model ใช้ FK แยกชื่อ serviceId
           },
         });
 

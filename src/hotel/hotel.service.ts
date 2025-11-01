@@ -81,11 +81,11 @@ export class HotelService {
   
 
   findAll() {
-    return this.prisma.hotel.findMany({include: { rooms: true , service: { include: { reviews: true } } }});
+    return this.prisma.hotel.findMany({include: { rooms: { include: { options: true } } , service: { include: { reviews: true } } }});
   }
 
   async findOne(id: string) {
-    const location = await this.prisma.hotel.findUnique({ where: { id }, include: { rooms: true, service: { include: { reviews: true } } } });
+    const location = await this.prisma.hotel.findUnique({ where: { id }, include: { rooms: { include: { options: true } }, service: { include: { reviews: true } } } });
         if (!location) throw new NotFoundException('Hotel not found');
         return location;
   }
@@ -118,21 +118,63 @@ export class HotelService {
         throw e;
     }
   }
-    async addRoom(dto : CreateRoomDto) {
-      try {
-        return await this.prisma.room.create({
-          data: {
-            ...dto,
-            // ให้ DB/Prisma gen เอง
-          },
-        });
-      } catch (e) {
-        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
-          throw new ConflictException('room already exists');
-        }
-        throw e;
+  async addRoom(dto: CreateRoomDto) {
+    try {
+      const {
+        id,
+        hotelId,
+        name,
+        pictures,
+        description,
+        facilities,
+        sizeSqm,
+        options,
+      } = dto;
+
+      return await this.prisma.room.create({
+        data: {
+          // ✅ composite PK (id, hotelId)
+          id,
+          hotelId,
+
+          // ✅ คุมฟิลด์ทีละตัว (ไม่ใช้ spread dto)
+          name: name ?? undefined,
+          pictures: pictures ?? [],        // default []
+          description: description ?? undefined,
+          facilities: facilities ?? [],    // default []
+          sizeSqm: sizeSqm ?? undefined,
+
+          // ✅ nested create RoomOption[]
+          options: options && options.length
+            ? {
+                create: options.map((o) => ({
+                  name: o.name,
+                  bed: o.bed ?? undefined,
+                  maxGuest: o.maxGuest ?? undefined,
+                  price:
+                    o.price != null
+                      ? new Prisma.Decimal(o.price) // number -> Decimal(10,2)
+                      : undefined,
+                })),
+              }
+            : undefined,
+        },
+        include: {
+          options: true, // ส่ง options กลับไปด้วย
+        },
+      });
+    } catch (e: any) {
+      // PK/unique ซ้ำ (id+hotelId หรือ unique อื่น ๆ)
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+        throw new ConflictException('room already exists');
       }
+      // FK ผิด (hotelId ไม่มีอยู่)
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2003') {
+        throw new NotFoundException('hotel not found');
+      }
+      throw e;
     }
+}
 
     async uploadHotelImages(hotelId: string, files: Express.Multer.File[]) {
       const hotel = await this.prisma.hotel.findUnique({ where: { id: hotelId } });

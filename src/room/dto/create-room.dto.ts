@@ -1,45 +1,48 @@
-import { IsArray, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
-import { Transform } from 'class-transformer';
-
-const toStringArray = (v: any) => {
-  if (v == null || v === '') return undefined;
-  if (Array.isArray(v)) return v.map(String);
-  return String(v).split(',').map(s => s.trim()).filter(Boolean);
-};
+import {
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreateRoomOptionDto } from './room-option.dto';
 
 export class CreateRoomDto {
-  @IsOptional() @IsString()
+  @IsString()
+  id!: string;                // composite PK part 1
+
+  @IsString()
+  hotelId!: string;           // composite PK part 2
+
+  @IsOptional()
+  @IsString()
   name?: string;
 
-  @IsOptional() @IsString()
-  id: string; // ✅ เพิ่ม ฟิลด์ id (optional ถ้าจะให้ service gen)
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  pictures?: string[];        // default []
+
+  @IsOptional()
   @IsString()
-  hotelId!: string; // ต้องระบุว่าเป็นของโรงแรมไหน
-
-  @IsOptional() @IsArray() @IsString({ each: true })
-  @Transform(({ value }) => toStringArray(value))
-  pictures?: string[]; // Prisma default = []
-
-  @IsOptional() @IsString()
   description?: string;
 
-  @IsOptional() @IsString()
-  image?: string; // legacy
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  facilities?: string[];      // default []
 
-  @IsOptional() @IsString()
-  bedType?: string;
-
-  @IsOptional() @IsInt() @Min(1)
-  personPerRoom?: number;
-
-  @IsOptional() @IsInt() @Min(0)
+  @IsOptional()
+  @IsInt()
+  @Min(0)
   sizeSqm?: number;
 
-  @IsOptional() @IsArray() @IsString({ each: true })
-  @Transform(({ value }) => toStringArray(value))
-  facilities?: string[]; // Prisma default = []
-
-  @IsOptional() @IsNumber() @Min(0)
-  @Transform(({ value }) => (value === '' || value == null ? undefined : Number(value)))
-  pricePerNight?: number; // map → Decimal(10,2)
+  // ✅ room options (สร้างเป็น array ของ object)
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateRoomOptionDto)
+  options?: CreateRoomOptionDto[];
 }

@@ -6,6 +6,7 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { MinioService } from 'src/minio/minio.service';
 import { v4 as uuidv4 } from 'uuid';
+import { CreateRoomOptionDto } from './dto/room-option.dto';
 @Injectable()
 export class RoomService {
   constructor(private prisma: PrismaService, private minioService: MinioService) {}
@@ -104,4 +105,28 @@ export class RoomService {
       });
       return updatedRoom;
     }
+
+    async addRoomOption(
+      roomId: string,
+      hotelId: string,
+      dto: CreateRoomOptionDto
+    ) {
+      try {
+        return await this.prisma.roomOption.create({
+          data: {
+            roomId,
+            hotelId,
+            name: dto.name,
+            bed: dto.bed,
+            maxGuest: dto.maxGuest,
+            price: dto.price != null ? new Prisma.Decimal(dto.price) : undefined,
+          },
+        });
+      } catch (e) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+          throw new ConflictException('room option already exists');
+        }
+        throw e;
+      }
+      }  
   }
