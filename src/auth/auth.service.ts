@@ -16,7 +16,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly minioService: MinioService
   ) {}
-  
+
   async register(createUserDto: CreateUserDto, profileImg?: Express.Multer.File) {
     const salt = await bcrypt.genSalt();
     createUserDto.password = await bcrypt.hash(createUserDto.password, salt);
@@ -34,7 +34,7 @@ export class AuthService {
 
     await this.usersService.create(createUserDto);
 
-    const user = await this.usersService.findByUsername(createUserDto.email);
+    const user = await this.usersService.findByUsername(createUserDto.username);
     if (!user) {
       throw new UnauthorizedException('Invalid user or password');
     }

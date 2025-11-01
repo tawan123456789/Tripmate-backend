@@ -15,11 +15,11 @@ export class CreateUserDto {
   @IsString() lname: string;
   @IsString() username: string;
 
-  @IsOptional() @IsDateString() birthDate?: string; // ส่งเป็น ISO string
+  @IsOptional()  birthDate?: string; 
 
   @IsOptional() @IsEnum(Role) role?: Role;
 
-  @IsEmail() email: string;
+  @IsOptional() @IsString() email?: string;
 
   @IsString() @MinLength(6) password: string;
 
