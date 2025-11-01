@@ -23,7 +23,7 @@ export class UsersService {
           gender: dto.gender,
           birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
           role: dto.role,
-          email: dto.email,
+          email: dto.email || dto.username,
           password: dto.password,
           profileImg: dto.profileImg,
           phone: dto.phone,

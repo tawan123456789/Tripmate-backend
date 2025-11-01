@@ -2,15 +2,17 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
+import { ApiBody } from '@nestjs/swagger';
 
 @Controller('review')
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
-  // @Post()
-  // create(@Body() createReviewDto: CreateReviewDto) {
-  //   return this.reviewService.create(createReviewDto);
-  // }
+  @Post()
+  @ApiBody({ type: CreateReviewDto })
+  create(@Body() createReviewDto: CreateReviewDto) {
+    return this.reviewService.create(createReviewDto);
+  }
 
   @Get()
   findAll() {
