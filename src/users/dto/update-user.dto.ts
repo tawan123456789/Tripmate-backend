@@ -18,6 +18,7 @@ export class UpdateUserDto {
     
       @ApiPropertyOptional()
       @IsOptional()
+      
       @IsDate()
       birthDate?: Date;
     
