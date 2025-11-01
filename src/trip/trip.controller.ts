@@ -2,14 +2,15 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { TripService } from './trip.service';
 import { CreateTripDto ,CreateTripPlanDto} from './dto/create-trip.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
-
+import { ApiBody } from '@nestjs/swagger';
 @Controller('trip')
 export class TripController {
   constructor(private readonly tripService: TripService) {}
 
   @Post()
-  create(@Body() createTripDto: CreateTripPlanDto) {
-    return this.tripService.create(createTripDto);
+  @ApiBody({ type: CreateTripDto }) // สำคัญมาก!
+  create(@Body() dto: CreateTripDto) {
+    return this.tripService.create(dto);
   }
 
   @Get()

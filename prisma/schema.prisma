@@ -34,6 +34,7 @@ model User {
   transactions   Transaction[]
   expenses    ExpenseGroup[]
   expenseSpliters ExpenseSpliter[]
+  payments    GroupUserPayment[]
 
   @@map("User")
 }
@@ -54,6 +55,7 @@ model Group {
   tripPlans   TripPlan?       @relation(fields: [tripPlansId], references: [id])
   members     UserJoinGroup[]
   expenses    ExpenseGroup[]
+  payments    GroupUserPayment[]
 
   @@index([ownerId])
   @@map("Group")
@@ -76,6 +78,21 @@ model ExpenseGroup {
   @@index([userId])
   @@map("ExpenseGroup")
 
+}
+
+model GroupUserPayment{
+  id          String  @id @map("group_user_payment_id")
+  groupId    String   @map("group_id")
+  userId     String   @map("user_id") @db.Uuid
+  status     String?
+  bank       String?  @map("bank")
+  accountNo  String?   @map("account_no")
+  promtpayId  String?  @map("promptpay_id")
+  group      Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, userId])
+  @@map("GroupUserPayment")
 }
 
 model ExpenseSpliter{
@@ -178,6 +195,7 @@ model Place {
   isAttraction Boolean?  @map("is_attraction")
   location    Location?  @relation(fields: [locationId], references: [id])
   tripUnits   TripUnit[]
+  reviews     Review[]
 
   @@index([locationId])
   @@map("Place")
@@ -422,15 +440,22 @@ model Table {
 
 model Review {
   id        String      @id @map("review_id")
-  serviceId String      @map("service_id")
+  serviceId String?      @map("service_id")
+  placeId   String?      @map("location_id")
   userId    String      @map("user_id") @db.Uuid
   comment   String?
-  score     Int?        
+  score1     Int?
+  score2     Int?
+  score3     Int?
+  score4     Int?
+  score5     Int?
+  score6     Int?
   createdAt DateTime    @default(now()) @map("created_at")
   updatedAt DateTime?   @updatedAt @map("updated_at")
   status    String?
-  image     String?
-  service   UserService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  image     String[]   @default([])
+  place     Place?   @relation(fields: [placeId], references: [id])
+  service   UserService? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([serviceId])

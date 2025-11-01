@@ -4,10 +4,11 @@ import { UpdateRoomDto } from './dto/update-room.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-
+import { MinioService } from 'src/minio/minio.service';
+import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class RoomService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private minioService: MinioService) {}
   async create(dto: CreateRoomDto) {
         try {
           return await this.prisma.room.create({
@@ -86,4 +87,30 @@ export class RoomService {
           throw e;
       }
     }
-}
+
+    async uploadRoomImages(
+      roomId: string,
+      hotelId: string,
+      files: Express.Multer.File[],
+    ) {
+      const room = await this.prisma.room.findUnique({ where: { id_hotelId: { id: roomId, hotelId: hotelId } } });
+      if (!room) {
+        throw new NotFoundException('Room not found');
+      }
+      const uploadResults: string[] = [];
+      for (const file of files) {
+        const fileName = `${uuidv4()}${file.originalname.substring(file.originalname.lastIndexOf('.'))}`;
+        const url = await this.minioService.uploadImage(file.buffer, fileName, file.mimetype);
+        uploadResults.push(url);
+      }
+      const updatedRoom = await this.prisma.room.update({
+        where: { id_hotelId: { id: roomId, hotelId: hotelId } },
+        data: {
+          pictures: {
+            push: uploadResults,
+          },
+        },
+      });
+      return updatedRoom;
+    }
+  }

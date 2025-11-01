@@ -9,9 +9,11 @@ import { CreateHotelDto } from './dto/create-hotel.dto';
 import { CreateRoomDto } from 'src/room/dto/create-room.dto';
 import { UpdateHotelDto } from './dto/update-hotel.dto';
 
+import { MinioService } from 'src/minio/minio.service';
+import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class HotelService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private minioService: MinioService) {}
 
   private toDecimalOrNull(v?: number | null) {
     if (v === null || v === undefined) return null;
@@ -133,5 +135,28 @@ export class HotelService {
       }
     }
 
-  
-}
+    async uploadHotelImages(hotelId: string, files: Express.Multer.File[]) {
+      const hotel = await this.prisma.hotel.findUnique({ where: { id: hotelId } });
+      if (!hotel) {
+        throw new NotFoundException('Hotel not found');
+      }
+
+    const uploadResults: string[] = [];
+    for (const file of files) {
+      const fileName = `${uuidv4()}${file.originalname.substring(file.originalname.lastIndexOf('.'))}`;
+      const url = await this.minioService.uploadImage(file.buffer, fileName, file.mimetype);
+      uploadResults.push(url);
+    }
+
+    const updatedHotel = await this.prisma.hotel.update({
+      where: { id: hotelId },
+      data: {
+        pictures: {
+          push: uploadResults,
+        },
+      },
+    });
+
+    return updatedHotel;
+  }
+} 

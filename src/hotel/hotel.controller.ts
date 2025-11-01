@@ -3,6 +3,10 @@ import { HotelService } from './hotel.service';
 import { CreateHotelDto } from './dto/create-hotel.dto';
 import { UpdateHotelDto } from './dto/update-hotel.dto';
 import { CreateRoomDto } from 'src/room/dto/create-room.dto';
+import { UseInterceptors } from '@nestjs/common/decorators';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { UploadedFiles } from '@nestjs/common/decorators';
+import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 @Controller('hotel')
 export class HotelController {
@@ -37,4 +41,27 @@ export class HotelController {
   addRoom(@Body() createRoomDto: CreateRoomDto) {
     return this.hotelService.addRoom(createRoomDto);
   }
+
+  @Post('upload/:hotelId')
+  @UseInterceptors(FilesInterceptor('profileImg', 10))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        profileImg: {
+          type: 'array',
+          items: { type: 'string', format: 'binary' },
+        },
+      },
+      required: ['profileImg'],
+    },
+  })
+  uploadHotelImages(
+    @Param('hotelId') hotelId: string,
+    @UploadedFiles() profileImgs: Express.Multer.File[],
+  ) {
+    return this.hotelService.uploadHotelImages(hotelId, profileImgs);
+  }
+
 }

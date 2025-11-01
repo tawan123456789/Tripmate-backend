@@ -4,11 +4,12 @@ import { UpdateGuideDto } from './dto/update-guide.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-
+import { MinioService } from 'src/minio/minio.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class GuideService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private minioService: MinioService) {}
   async create(dto: CreateGuideDto) {
       try {
         return await this.prisma.guide.create({
@@ -66,5 +67,30 @@ export class GuideService {
         }
         throw e;
     }
+  }
+
+
+  async uploadGuideImages(guideId: string, profileImgs: Express.Multer.File[]) {
+    const guide = await this.prisma.guide.findUnique({ where: { id: guideId } });
+    if (!guide) {
+      throw new NotFoundException('Guide not found');
+    }
+
+    const uploadResults: string[] = [];
+    for (const file of profileImgs) {
+      const fileName = `${uuidv4()}${file.originalname.substring(file.originalname.lastIndexOf('.'))}`;
+      const url = await this.minioService.uploadImage(file.buffer, fileName, file.mimetype);
+      uploadResults.push(url);
+    }
+    const updatedGuide = await this.prisma.guide.update({
+      where: { id: guideId },
+      data: {
+        pictures: {
+          push: uploadResults,
+        },
+      },
+    });
+
+    return updatedGuide;
   }
 }
