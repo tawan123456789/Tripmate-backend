@@ -5,36 +5,45 @@ import { IsDate, IsEnum, IsOptional } from 'class-validator';
 import { Role } from './create-user.dto';
 export class UpdateUserDto {
       @ApiPropertyOptional()
+      @IsOptional()
       fname?: string;
     
       @ApiPropertyOptional()
+      @IsOptional()
       lname?: string;
     
       @ApiPropertyOptional()
+      @IsOptional()
       username?: string;
     
       @ApiPropertyOptional()
+      @IsOptional()
       @IsDate()
       birthDate?: Date;
     
       @ApiPropertyOptional({ enum: Role })
       @IsEnum(Role)
+      @IsOptional()
       role?: Role;
     
       @ApiPropertyOptional()
+      @IsOptional()
       gender?: string;
     
       @ApiPropertyOptional()
       @IsOptional()
+
       email?: string;
     
       @ApiPropertyOptional()
       phone?: string;
     
       @ApiPropertyOptional()
+      @IsOptional()
       status?: string;
     
-      @ApiProperty({ type: 'string', format: 'binary', required: false })
+      @ApiPropertyOptional({ type: 'string', format: 'binary', required: false })
+      @IsOptional()
       profileImg?: any;
 }
 
