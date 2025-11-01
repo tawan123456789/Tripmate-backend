@@ -133,6 +133,8 @@ model TripPlan {
   tripImg      String?       @map("trip_img")
   status       String?
   note         String?
+  peopleCount  Int?          @map("people_count")
+  roomCount    Int?          @map("room_count")
   startDate    DateTime?     @map("start_date") @db.Date
   endDate      DateTime?     @map("end_date") @db.Date
   groups       Group[]

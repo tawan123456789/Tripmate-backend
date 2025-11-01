@@ -177,6 +177,8 @@ export class TripService {
           status,
           startDate: start,
           endDate: end,
+          peopleCount: typeof payload.peopleCount === 'number' ? payload.peopleCount : null,
+          roomCount: typeof payload.roomCount === 'number' ? payload.roomCount : null,
         },
       });
 
@@ -412,8 +414,11 @@ async getTripAsFrontShape(tripId: string) {
     isPublic: trip.status === 'public',
     startDate: trip.startDate?.toISOString(),
     endDate: trip.endDate?.toISOString(),
+    peopleCount: trip.peopleCount ?? undefined,
+    roomCount: trip.roomCount ?? undefined,
     days,
   };
+
 }
 
 
