@@ -7,6 +7,7 @@ import { CreateCarDto } from 'src/car/dto/create-car.dto';
 import { MinioService } from 'src/minio/minio.service';
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { BadRequestException } from '@nestjs/common';
 @Injectable()
 export class CarRentalCenterService {
   constructor(private prisma: PrismaService,
@@ -162,14 +163,41 @@ async findOne(id: string) {
   }
 
   async addAnotherService(crcId: string, service: string, price: number) {
-    const crc = await this.prisma.carRentalCenter.findUnique({ where: { id: crcId } });
-    if (!crc) throw new NotFoundException('CarRentalCenter not found');
-   
-     
-      crc.anotherServices.push({ service, price });
-    
-
-    await this.prisma.carRentalCenter.update({ where: { id: crcId }, data: { anotherServices: crc.anotherServices } });
-    return crc;
+  if (!service?.trim()) throw new BadRequestException('service required');
+  if (typeof price !== 'number' || Number.isNaN(price)) {
+    throw new BadRequestException('price must be a number');
   }
+
+  const center = await this.prisma.carRentalCenter.findUnique({
+    where: { id: crcId },
+    select: { id: true, anotherServices: true },
+  });
+  if (!center) throw new NotFoundException('CarRentalCenter not found');
+
+  // ค่าที่อ่านมาเป็น JsonValue | JsonValue[] | null -> normalize ให้เป็น array
+  const prevRaw = Array.isArray(center.anotherServices)
+    ? center.anotherServices
+    : [];
+
+  // ตัด null ออก เพราะ InputJsonValue[] ห้ามมี null
+  const prev: Prisma.InputJsonValue[] = prevRaw
+    .filter((x): x is Exclude<typeof x, null> => x !== null)
+    .map((x) => x as Prisma.InputJsonValue);
+
+  // สร้างรายการใหม่ (ห้าม push ใส่ของเก่าแล้วส่งคืน)
+  const next: Prisma.InputJsonValue[] = [
+    ...prev,
+    { service, price } as Prisma.InputJsonValue,
+  ];
+
+  const updated = await this.prisma.carRentalCenter.update({
+    where: { id: crcId },
+    data: {
+      // JSON/JSON[] ต้อง "set" ก้อนใหม่
+      anotherServices: next,
+    },
+  });
+
+  return updated;
+}
 }

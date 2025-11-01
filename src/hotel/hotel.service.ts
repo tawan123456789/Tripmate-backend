@@ -131,22 +131,7 @@ export class HotelService {
         return location;
   }
 
-  // async update(id: string, dto: UpdateHotelDto) {
-  //   const existing = await this.prisma.hotel.findUnique({ where: { id } });
-  //       if (!existing) {
-  //           throw new NotFoundException('Hotel not found');
-  //       }
-  //       return this.prisma.hotel.update({
-  //           where: { id },
-  //           data: {
-  //             id: dto.id,
-  //             name: dto.name,
-  //             description: dto.description,
-  //             facility: dto.facility,
-  //             image: dto.image,
-  //         },
-  //       });
-  // }
+
 
   async remove(id: string) {
     try {

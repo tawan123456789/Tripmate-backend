@@ -368,7 +368,7 @@ model CarRentalCenter {
   nearbyLocations String[]    @default([]) @map("nearby_locations")
   openingHours    Json?       @map("opening_hours")
   paymentMethods  String[]    @default([]) @map("payment_methods")
-  anotherServices  Json?       @map("another_services")
+  anotherServices  Json[]       @map("another_services")
 
   requiredDocs    String[]    @default([]) @map("required_docs")
   subtopicRatings Json?       @map("subtopic_ratings")

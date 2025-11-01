@@ -41,6 +41,11 @@ export class CarRentalCenterController {
     return this.carRentalCenterService.addCar(CreateCarDto);
   }
 
+  @Post('add-another-service/:centerId')
+  addAnotherService(@Param('centerId') centerId: string, @Body() createCarRentalCenterDto: { service: string, price: number }) {
+    return this.carRentalCenterService.addAnotherService(centerId, createCarRentalCenterDto.service, createCarRentalCenterDto.price);
+  }
+
 @Post('upload/:carId')
 @UseInterceptors(FilesInterceptor('profileImg', 10))
 @ApiConsumes('multipart/form-data')
@@ -64,4 +69,9 @@ uploadCarImages(
 }
 
 
+
+
+
 }
+
+
