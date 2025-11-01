@@ -154,6 +154,19 @@ export class TripService {
     return trips;
   }
 
+  async setPrivateTripPlan(id: string, status: string) {
+    const existing = await this.prisma.tripPlan.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException('Trip not found');
+    }
+    return this.prisma.tripPlan.update({
+      where: { id },
+      data: {
+        status: status,
+      },
+    });
+  }
+
   async createFromFrontPayload(payload: FrontCreateTripPayloadDto & { ownerId: string }) {
     if (!payload.ownerId) throw new BadRequestException('ownerId is required');
     if (!payload.title) throw new BadRequestException('title is required');
@@ -163,9 +176,7 @@ export class TripService {
     const status = payload.isPublic ? 'public' : 'private';
     const start = new Date(payload.startDate);
     const end = payload.endDate ? new Date(payload.endDate) : undefined;
-    if (end && end < start) {
-      throw new BadRequestException('endDate must be >= startDate');
-    }
+    if (end && end < start) throw new BadRequestException('endDate must be >= startDate');
 
     await this.prisma.$transaction(async (tx) => {
       // 1) TripPlan
@@ -200,12 +211,12 @@ export class TripService {
         const title = ev.title ?? ev.location?.label ?? 'Untitled';
         const desc = ev.desc ?? null;
 
-        // ถ้ามีพิกัด: สร้าง Location และ Place
         if (ev.location?.lat != null && ev.location?.lng != null) {
           const lat = ev.location.lat;
           const long = ev.location.lng;
           const name = ev.location.label ?? ev.title ?? 'Unknown Location';
 
+          // สร้าง Location และ Place
           const place = await tx.place.create({
             data: {
               id: `pl_${rid(8)}`,
@@ -246,18 +257,26 @@ export class TripService {
         const baseDate = addDays(start, day.dateOffset);
 
         // 2.1) services[] → TripService (เฉพาะที่ userService มีอยู่จริง เพื่อกัน FK ล้ม)
-        // 2.1) services[] → TripService (เฉพาะที่ userService มีอยู่จริง เพื่อกัน FK ล้ม)
         for (const s of day.services ?? []) {
+          // validation เบา ๆ ตามชนิด
+          if (s.type === 'hotel' && !s.roomId) {
+            throw new BadRequestException('hotel service requires roomId');
+          }
+          if (s.type === 'car' && !s.carId) {
+            throw new BadRequestException('car service requires carId');
+          }
+
           const svc = await tx.userService.findUnique({
             where: { id: s.id },
             select: { id: true },
           });
           if (!svc) continue; // ข้ามถ้าไม่มีจริง
 
-          // เตรียม meta
+          // meta ที่จะเก็บใน TripService.meta (JsonB)
           const meta: Record<string, any> = {};
           if (s.roomId) meta.roomId = s.roomId;
           if (s.packageId) meta.packageId = s.packageId;
+          if (s.carId) meta.carId = s.carId;
           if (typeof s.quantity === 'number') meta.quantity = s.quantity;
 
           await tx.tripService.create({
@@ -265,13 +284,12 @@ export class TripService {
               id: `ts_${rid(10)}`,
               tripId,
               serviceId: s.id,
-              date: baseDate,      // map -> date_time
-              status: s.type,      // 'hotel' | 'guide' | 'car'
-              meta: Object.keys(meta).length ? meta : undefined, // 👈 เก็บลง JSON
+              date: baseDate,
+              status: s.type, // 'hotel' | 'guide' | 'car'
+              meta: Object.keys(meta).length ? (meta as Prisma.JsonObject) : undefined,
             },
           });
         }
-
 
         // 2.2) events[] → TripUnit (แนบ Place + เวลาเริ่ม)
         for (const ev of day.events ?? []) {
@@ -283,7 +301,7 @@ export class TripService {
               id: `ut_${rid(10)}`,
               tripId,
               placeId,
-              serviceId: null, // ถ้าจะชี้ Booking ค่อยเติมในอนาคต
+              serviceId: null, // ถ้าจะโยง Booking ค่อยเติมในอนาคต
               timeStampStart: startAt,
               duration: 60, // default 60 นาที
               status: 'visit',
@@ -294,132 +312,143 @@ export class TripService {
       }
     });
 
-    // ตอบกลับ id อย่างเดียว หรือจะประกอบคืนรูป frontend ก็ได้
     return { id: tripId };
   }
 
-  // อ่านทริปเป็นรูป frontend
-async getTripAsFrontShape(tripId: string) {
-  const trip = await this.prisma.tripPlan.findUnique({
-    where: { id: tripId },
-    include: {
-      units: {
-        include: {
-          place: {
-            select: {
-              name: true,
-              description: true,
-              // 👇 ใช้ label/lat/lng ให้ตรงกับโมเดล Location จริง
-              location: { select: { name: true, lat: true, long: true } },
+  // ---------- READ (คืนรูป frontend) ----------
+  async getTripAsFrontShape(tripId: string) {
+    const trip = await this.prisma.tripPlan.findUnique({
+      where: { id: tripId },
+      include: {
+        units: {
+          include: {
+            place: {
+              select: {
+                name: true,
+                description: true,
+                // ให้ตรงกับโมเดล Location: name/lat/long
+                location: { select: { name: true, lat: true, long: true } },
+              },
             },
           },
         },
+        // ดึง meta ด้วยจะอ่าน roomId/packageId/carId/quantity จาก JSON
+        tripServices: { select: { serviceId: true, status: true, date: true, meta: true } },
       },
-      // ถ้าอยากกำหนด field ชัด ๆ ก็ใช้ select ได้:
-      // tripServices: { select: { serviceId: true, status: true, date: true, meta: true } },
-      tripServices: true,
-    },
-  });
+    });
 
-  if (!trip) throw new NotFoundException('Trip not found');
-  if (!trip.startDate) throw new BadRequestException('Trip has no startDate');
+    if (!trip) throw new NotFoundException('Trip not found');
+    if (!trip.startDate) throw new BadRequestException('Trip has no startDate');
 
-  const startDate = new Date(trip.startDate);
-  const diffDays = (a: Date, b: Date) =>
-    Math.floor((a.getTime() - b.getTime()) / (24 * 3600 * 1000));
+    const startDate = new Date(trip.startDate);
+    const diffDays = (a: Date, b: Date) =>
+      Math.floor((a.getTime() - b.getTime()) / (24 * 3600 * 1000));
 
-  // group by dateOffset
-  const daysMap = new Map<
-    number,
-    { day: number; dayLabel: string; dateOffset: number; events: any[]; services: any[] }
-  >();
+    // group by dateOffset
+    const daysMap = new Map<
+      number,
+      { day: number; dayLabel: string; dateOffset: number; events: any[]; services: any[] }
+    >();
 
-  // units -> events
-  for (const u of trip.units) {
-    if (!u.timeStampStart) continue;
-    const offset = diffDays(new Date(u.timeStampStart), startDate);
-    if (!daysMap.has(offset)) {
-      daysMap.set(offset, {
-        day: offset,
-        dayLabel: `Day ${offset + 1}`,
-        dateOffset: offset,
-        events: [],
-        services: [],
+    // units -> events
+    for (const u of trip.units) {
+      if (!u.timeStampStart) continue;
+      const offset = diffDays(new Date(u.timeStampStart), startDate);
+      if (!daysMap.has(offset)) {
+        daysMap.set(offset, {
+          day: offset,
+          dayLabel: `Day ${offset + 1}`,
+          dateOffset: offset,
+          events: [],
+          services: [],
+        });
+      }
+
+      const start = new Date(u.timeStampStart);
+      const hh = String(start.getUTCHours()).padStart(2, '0');
+      const mm = String(start.getUTCMinutes()).padStart(2, '0');
+
+      const L = u.place?.location; // { name, lat, long } | null
+
+      daysMap.get(offset)!.events.push({
+        title: u.place?.name ?? u.note ?? 'Visit',
+        desc: u.note ?? u.place?.description ?? undefined,
+        time: `${hh}.${mm}`,
+        location: L
+          ? {
+              label: L.name ?? u.place?.name ?? 'Unknown',
+              lat: typeof L.lat === 'number' ? L.lat : undefined,
+              lng: typeof L.long === 'number' ? L.long : undefined,
+            }
+          : undefined,
       });
     }
 
-    const start = new Date(u.timeStampStart);
-    const hh = String(start.getUTCHours()).padStart(2, '0');
-    const mm = String(start.getUTCMinutes()).padStart(2, '0');
+    // tripServices -> services (อ่านจาก meta JSON)
+    for (const s of trip.tripServices) {
+      if (!s.date) continue;
+      const offset = diffDays(new Date(s.date), startDate);
+      if (!daysMap.has(offset)) {
+        daysMap.set(offset, {
+          day: offset,
+          dayLabel: `Day ${offset + 1}`,
+          dateOffset: offset,
+          events: [],
+          services: [],
+        });
+      }
 
-    const L = u.place?.location; // { label, lat, lng } | null
+      // meta: Prisma.JsonValue | null
+      const rawMeta = (s as { meta?: Prisma.JsonValue }).meta ?? null;
+      const metaObj: Record<string, any> | null =
+        rawMeta && typeof rawMeta === 'object' && !Array.isArray(rawMeta)
+          ? (rawMeta as Record<string, any>)
+          : null;
 
-    daysMap.get(offset)!.events.push({
-      title: u.place?.name ?? u.note ?? 'Visit',
-      desc: u.note ?? u.place?.description ?? undefined,
-      time: `${hh}.${mm}`,
-      location: L
-        ? {
-            label: L.name ?? u.place?.name ?? 'Unknown',
-            lat: typeof L.lat === 'number' ? L.lat : undefined,
-            lng: typeof L.long === 'number' ? L.long : undefined,
-          }
-        : undefined,
-    });
-  }
+      const roomId   = typeof metaObj?.roomId    === 'string' ? metaObj!.roomId    : undefined;
+      const packageId= typeof metaObj?.packageId === 'string' ? metaObj!.packageId : undefined;
+      const carId    = typeof metaObj?.carId     === 'string' ? metaObj!.carId     : undefined;
+      const quantity = typeof metaObj?.quantity  === 'number' ? metaObj!.quantity  : undefined;
+      let datas ;
+      if(s.status == "hotel" && roomId){
+          datas = await this.prisma.room.findUnique({
+          where: { id_hotelId: { id: roomId, hotelId: s.serviceId } }
+        });
+      }
+      else if(s.status == "car" && carId){
+        datas = await this.prisma.car.findUnique({
+          where: { id: carId }
+        });
+      }
+      else if(s.status == "guide" ){
+        datas = await this.prisma.guide.findUnique({
+          where: { id:s.serviceId}
+        });
+      }
 
-  // tripServices -> services (อ่านจาก meta JSON)
-  for (const s of trip.tripServices) {
-    if (!s.date) continue;
-    const offset = diffDays(new Date(s.date), startDate);
-    if (!daysMap.has(offset)) {
-      daysMap.set(offset, {
-        day: offset,
-        dayLabel: `Day ${offset + 1}`,
-        dateOffset: offset,
-        events: [],
-        services: [],
+      daysMap.get(offset)!.services.push({
+        id: s.serviceId,
+        type: s.status,
+        roomId,
+        packageId,
+        carId,
+        quantity,
+        data:datas,
       });
     }
 
-    // meta: Prisma.JsonValue | null
-    const rawMeta = (s as { meta?: Prisma.JsonValue }).meta ?? null;
+    const days = Array.from(daysMap.values()).sort((a, b) => a.day - b.day);
 
-    // ปลอดภัยด้วยการแปลงเป็น Record<string, any> แล้วค่อยดึง
-    const metaObj: Record<string, any> | null =
-      rawMeta && typeof rawMeta === 'object' && !Array.isArray(rawMeta)
-        ? (rawMeta as Record<string, any>)
-        : null;
-
-    const roomId =
-      metaObj && typeof metaObj['roomId'] === 'string' ? (metaObj['roomId'] as string) : undefined;
-    const packageId =
-      metaObj && typeof metaObj['packageId'] === 'string' ? (metaObj['packageId'] as string) : undefined;
-    const quantity =
-      metaObj && typeof metaObj['quantity'] === 'number' ? (metaObj['quantity'] as number) : undefined;
-
-    daysMap.get(offset)!.services.push({
-      id: s.serviceId,
-      type: s.status,
-      roomId,
-      packageId,
-      quantity,
-    });
+    return {
+      title: trip.tripName,
+      isPublic: trip.status === 'public',
+      startDate: trip.startDate?.toISOString(),
+      endDate: trip.endDate?.toISOString(),
+      peopleCount: trip.peopleCount ?? undefined,
+      roomCount: trip.roomCount ?? undefined,
+      days,
+    };
   }
-
-  const days = Array.from(daysMap.values()).sort((a, b) => a.day - b.day);
-
-  return {
-    title: trip.tripName,
-    isPublic: trip.status === 'public',
-    startDate: trip.startDate?.toISOString(),
-    endDate: trip.endDate?.toISOString(),
-    peopleCount: trip.peopleCount ?? undefined,
-    roomCount: trip.roomCount ?? undefined,
-    days,
-  };
-
-}
 
 
 }

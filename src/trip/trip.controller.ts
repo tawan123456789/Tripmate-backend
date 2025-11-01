@@ -56,6 +56,23 @@ export class TripController {
     return this.tripService.getTripAsFrontShape(id);
   }
 
+  @Patch('private/:id/:status')
+  @ApiBody({ type: String ,examples: {
+    example1: {
+      summary: 'Set to private',
+      value: 'private',
+    },
+    example2: {
+      summary: 'Set to public',
+      value: 'public',
+    },
+  }})
+  async editPrivateTripPlan(
+    @Param('id') id: string,
+    @Param('status') status: string
+  ) {
+    return this.tripService.setPrivateTripPlan(id, status);
+  }
 
 
 }
