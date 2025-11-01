@@ -20,7 +20,7 @@ export class UsersService {
           fname: dto.fname,
           lname: dto.lname,
           username: dto.username,
-          gender: dto.gender,
+          gender: dto.gender || " ",
           birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
           role: dto.role,
           email: dto.email || dto.username,
