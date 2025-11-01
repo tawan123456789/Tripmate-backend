@@ -33,9 +33,6 @@ async createHotelService(
       // 1) สร้าง UserService (type = 'hotel')
       const service = await tx.userService.create({
         data: {
-          id: dto.id,                    // ถ้า schema คุณไม่มี @default(uuid()) ต้องส่งเสมอ
-          // ownerId: dto.ownerId,
-          // locationId: dto.locationId,  // ถ้าเป็น optional/nullable อย่าลืมปรับ schema ให้เป็น String?
           name: dto.name,
           description: dto.description,
           serviceImg: dto.serviceImg,
@@ -127,7 +124,6 @@ async createHotelService(
         // 1) สร้าง UserService
         const service = await tx.userService.create({
           data: {
-            id: dto.id, // Prisma ของคุณต้องการ id ชัดเจน (ไม่มี default)
             name: dto.name,
             description: dto.description,
             serviceImg: dto.serviceImg,
@@ -226,7 +222,6 @@ async createHotelService(
         // 1) สร้าง UserService (type บังคับให้ชัด)
         const service = await tx.userService.create({
           data: {
-            id: dto.id,                 // ถ้า schema มี @default(uuid()) จะละได้
             name: dto.name,
             description: dto.description,
             serviceImg: dto.serviceImg,
@@ -311,8 +306,7 @@ async createHotelService(
       return await this.prisma.$transaction(async (tx) => {
         // 1) สร้าง UserService (type = 'guide')
         const service = await tx.userService.create({
-          data: {
-            id: dto.id,                 // ถ้ามี @default(uuid()) จะละได้
+          data: {                 // ถ้ามี @default(uuid()) จะละได้
             name: dto.name,
             description: dto.description,
             serviceImg: dto.serviceImg,
