@@ -6,6 +6,8 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { MinioService } from 'src/minio/minio.service';
 import { v4 as uuidv4 } from 'uuid';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+
 @Injectable()
 export class CarService {
   constructor(private prisma: PrismaService,
@@ -69,17 +71,38 @@ export class CarService {
           if (!existing) {
               throw new NotFoundException('Car not found');
           }
-          return this.prisma.car.update({
-              where: { id },
-              data: {
-                id: dto.id,
-                pricePerDay: dto.pricePerDay,
-                model: dto.model,
-                description: dto.description,
-                seats: dto.seats,
-                crcId: dto.crcId,
-            },
-          });
+
+  return this.prisma.car.update({
+    where: { id },
+    data: {
+          // id: dto.id, // ถ้าจำเป็นต้องเปลี่ยนจริง ๆ ค่อยเปิดบรรทัดนี้
+    name: dto.name,
+    crcId: dto.crcId,
+
+    // ====== ฟิลด์ตามสคีมา ======
+    type: dto.type,
+    model: dto.model,
+    description: dto.description,
+    seats: dto.seats,
+    pictures: dto.pictures,          // [] จะยังถูกส่งได้ (เพราะไม่ใช่ undefined)
+    pricePerDay: dto.pricePerDay,
+    pricePerHour: dto.pricePerHour,
+    brand: dto.brand,
+    currency: dto.currency,
+    deposit: dto.deposit,
+    doors: dto.doors,
+    features: dto.features,          // [] จะยังถูกส่งได้
+    fuelType: dto.fuelType,
+    fuelPolicy: dto.fuelPolicy,
+    pickupLocation: dto.pickupLocation,
+    luggage: dto.luggage,
+    mileageLimitKm: dto.mileageLimitKm,
+    transmission: dto.transmission,
+    year: dto.year,
+    availability: dto.availability,  // JSON
+    insurance: dto.insurance,        // JSON
+    }
+  });
     }
   
     async remove(id: string) {
