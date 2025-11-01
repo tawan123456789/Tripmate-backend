@@ -44,6 +44,7 @@ export class UpdateUserDto {
     email?: string;
 
     @ApiPropertyOptional()
+    @IsOptional()
     phone?: string;
 
     @ApiPropertyOptional()
