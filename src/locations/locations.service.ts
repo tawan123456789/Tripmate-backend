@@ -19,7 +19,11 @@ export class LocationsService {
                     name: dto.name,
                     detail: dto.detail,
                     status: dto.status,
+<<<<<<< HEAD
+                    zone: dto.zone,
+=======
                    
+>>>>>>> main
                     country: dto.country,
                     province: dto.province,
                     district: dto.district,
@@ -48,7 +52,11 @@ export class LocationsService {
                 name: dto.name,
                 detail: dto.detail,
                 status: dto.status,
+<<<<<<< HEAD
+                zone: dto.zone,
+=======
                
+>>>>>>> main
                 country: dto.country,
                 province: dto.province,
                 district: dto.district,

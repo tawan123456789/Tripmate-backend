@@ -46,8 +46,8 @@ export class CarRentalCenterController {
     return this.carRentalCenterService.addAnotherService(centerId, createCarRentalCenterDto.service, createCarRentalCenterDto.price);
   }
 
-  @Get('cars/:centerId')
-  getCarsByCenter(@Param('centerId') centerId: string) {
+  @Get('car/:centerId')
+  getCars(@Param('centerId') centerId: string) {
     return this.carRentalCenterService.getCarsByCenter(centerId);
   }
 
