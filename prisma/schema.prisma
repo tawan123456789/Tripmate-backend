@@ -209,6 +209,7 @@ model Location {
   name          String
   detail        String?
   status        String?
+  zone          String?
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime?     @updatedAt @map("updated_at")
   deletedAt     DateTime?     @map("deleted_at")
