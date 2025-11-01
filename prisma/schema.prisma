@@ -133,6 +133,8 @@ model TripPlan {
   tripImg      String?       @map("trip_img")
   status       String?
   note         String?
+  peopleCount  Int?          @map("people_count")
+  roomCount    Int?          @map("room_count")
   startDate    DateTime?     @map("start_date") @db.Date
   endDate      DateTime?     @map("end_date") @db.Date
   groups       Group[]
@@ -171,6 +173,7 @@ model TripService {
   tripId    String      @map("trip_id")
   serviceId String      @map("service_id")
   date      DateTime    @map("date_time")
+  meta      Json?        @map("meta")
   status    String?
   createdAt DateTime    @default(now()) @map("created_at")
   updatedAt DateTime?   @updatedAt @map("updated_at")
@@ -186,6 +189,7 @@ model Place {
   id          String     @id @default(uuid()) @map("place_id")
   locationId  String?    @map("location_id")
   name        String
+  type        String?
   description String?
   placeImg    String[]   @map("place_img") @default([])
   zone        String?
