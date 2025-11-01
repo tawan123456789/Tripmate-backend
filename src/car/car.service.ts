@@ -31,7 +31,6 @@ export class CarService {
           model: dto.model,
           description: dto.description,
           seats: dto.seats,
-          image: dto.image,
           brand: dto.brand,
           currency: dto.currency,
           doors: dto.doors,
@@ -78,7 +77,6 @@ export class CarService {
                 model: dto.model,
                 description: dto.description,
                 seats: dto.seats,
-                image: dto.image,
                 crcId: dto.crcId,
             },
           });

@@ -36,7 +36,6 @@ export class PlaceService {
           id: createPlaceDto.id,
           name: createPlaceDto.name,
           description: createPlaceDto.description,
-          placeImg: createPlaceDto.placeImg,
           status: createPlaceDto.status ?? 'active',
           isAttraction: createPlaceDto.isAttraction ?? false,
           createdAt: createPlaceDto.createdAt, // ถ้าไม่ส่ง Prisma จะใส่ default(now())

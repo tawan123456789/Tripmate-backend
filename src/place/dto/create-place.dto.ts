@@ -27,10 +27,6 @@ export class CreatePlaceDto {
   @IsString()
   description?: string;
 
-  /** 🖼️ รูปภาพหลักของสถานที่ */
-  @IsOptional()
-  @IsString()
-  placeImg?: string;
 
   /** 🔖 สถานะ (active/inactive ฯลฯ) */
   @IsOptional()
