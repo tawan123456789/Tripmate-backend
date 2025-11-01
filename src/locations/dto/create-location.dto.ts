@@ -8,7 +8,7 @@ export class CreateLocationDto {
     @IsString() name: string;
     @IsOptional() @IsString() detail?: string;
     @IsOptional() @IsString() status?: string;
-
+    @IsOptional() @IsString() zone?: string;
     @IsOptional() @IsString() country?: string
     @IsOptional() @IsString() province?: string
     @IsOptional() @IsString() address?: string
