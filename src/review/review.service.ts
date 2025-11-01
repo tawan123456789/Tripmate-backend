@@ -6,10 +6,11 @@ import { Prisma } from '@prisma/client';
 import { ConflictException } from '@nestjs/common/exceptions';
 import { NotFoundException } from '@nestjs/common';
 import { randomAlphanumeric } from 'src/utils/random.util';
-
+import { MinioService } from 'src/minio/minio.service';
+import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class ReviewService {
-    constructor(private prisma: PrismaService) { }
+    constructor(private prisma: PrismaService, private minioService: MinioService) { }
 
     async create(dto: CreateReviewDto) {
         if (dto.status == "place") {
@@ -91,4 +92,25 @@ export class ReviewService {
             throw e;
         }
     }
+
+    async uploadReviewImages(
+        reviewId: string,
+        profileImgs: Express.Multer.File[],
+    ) {
+        const existing = await this.prisma.review.findUnique({ where: { id: reviewId } });
+        if (!existing) {
+            throw new NotFoundException('Review not found');
+        }
+    const uploadResults: string[] = [];
+    for (const file of profileImgs) {
+      const fileName = `${uuidv4()}${file.originalname.substring(file.originalname.lastIndexOf('.'))}`;
+      const url = await this.minioService.uploadImage(file.buffer, fileName, file.mimetype);
+      uploadResults.push(url);
+    }
+    const updateReview = await this.prisma.review.update({
+        where: { id: reviewId },
+        data: { image: { push: uploadResults } },
+    });
+    return updateReview;
+}
 }
