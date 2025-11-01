@@ -55,12 +55,12 @@ export class BookingService {
       });
       if (!hotel) throw new Error(`Hotel not found for serviceId ${serviceId}`);
       if(!room) throw new Error(`Room not found for subServiceId ${subServiceId}`);
-      if (room.pricePerNight == null) throw new Error(`Room pricePerNight not set`);
-      const rate: number = room.pricePerNight.toNumber();
+      // if (room.pricePerNight == null) throw new Error(`Room pricePerNight not set`);
+      // const rate: number = room.pricePerNight.toNumber();
       const startDateOnly = new Date(start.getFullYear(), start.getMonth(), start.getDate());
       const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
       const diffDays = Math.floor((endDateOnly.getTime() - startDateOnly.getTime()) / (1000 * 60 * 60 * 24));
-      price = rate * diffDays;
+      // price = rate * diffDays;
     }
     return price;
   };

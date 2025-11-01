@@ -18,12 +18,8 @@ export class RoomService {
               name: dto.name,
               pictures: dto.pictures,
               description: dto.description,
-              image: dto.image,
-              bedType: dto.bedType,
-              personPerRoom: dto.personPerRoom,
               sizeSqm: dto.sizeSqm,
               facilities: dto.facilities,
-              pricePerNight: dto.pricePerNight != null ? new Prisma.Decimal(dto.pricePerNight) : null,
             },
           });
         } catch (e) {
@@ -55,16 +51,11 @@ export class RoomService {
           data: {
             name: dto.name ?? undefined,
             description: dto.description ?? undefined,
-            image: dto.image ?? undefined,
-            bedType: dto.bedType ?? undefined,
-            personPerRoom: dto.personPerRoom ?? undefined,
+
             sizeSqm: dto.sizeSqm ?? undefined,
             facilities: dto.facilities ?? undefined,   // string[] | undefined
             pictures: dto.pictures ?? undefined,       // string[] | undefined
-            pricePerNight:
-              dto.pricePerNight != null
-                ? new Prisma.Decimal(dto.pricePerNight)  // number | string -> Decimal
-                : undefined,                              // ไม่ส่ง = ไม่แก้
+                                         // ไม่ส่ง = ไม่แก้
           },
         });
       } catch (e) {

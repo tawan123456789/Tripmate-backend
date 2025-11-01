@@ -42,14 +42,13 @@ export class HotelService {
           type: dto.type ?? undefined,
           star: dto.star ?? undefined,
           description: dto.description ?? undefined,
-          image: dto.image ?? undefined,
+   
 
           // arrays — ถ้าไม่ส่ง ปล่อย undefined เพื่อให้ Prisma ใช้ค่า default ใน schema
           pictures: dto.pictures ?? undefined,
           nearbyLocations: dto.nearbyLocations ?? undefined,
 
-          // legacy string
-          facility: dto.facility ?? undefined,
+       
 
           // JSON fields
           facilities: dto.facilities as any,          // Prisma.JsonValue

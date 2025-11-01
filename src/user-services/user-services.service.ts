@@ -59,12 +59,10 @@ async createHotelService(
           star: payload.star,
 
           description: payload.description,
-          image: payload.image,
           pictures: payload.pictures,
 
-          facility: payload.facility,
+      
           facilities: payload.facilities as any,     // ถ้าเป็น Json ใน Prisma ใช้ as Prisma.JsonValue แทน
-
           rating: payload.rating as any,             // ถ้าเป็น Decimal ใส่เป็น string เช่น "4.5"
 
           checkIn: payload.checkIn,
@@ -254,22 +252,18 @@ async createHotelService(
             image: payload.image,
 
             pictures: payload.pictures,
-            facility: payload.facility,
+          
             facilities: payload.facilities as any,
 
             rating: payload.rating as any, // Decimal(3,1) เป็น string "8.7" ก็ได้
             subtopicRatings: payload.subtopicRatings as any,
 
-            locationSummary: payload.locationSummary,
+
             nearbyLocations: payload.nearbyLocations,
-
-            contact: payload.contact,
             contacts: payload.contacts as any,
-
             openingHours: payload.openingHours as any,
-            pickupDropoff: payload.pickupDropoff as any,
+      
             branches: payload.branches as any,
-            policies: payload.policies as any,
 
             paymentMethods: payload.paymentMethods,
             requiredDocs: payload.requiredDocs,
