@@ -5,7 +5,7 @@ import { CreateUserDto,ChangePasswordDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-
+import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -36,6 +36,8 @@ export class UsersController {
 
   @Patch(':id')
   @UseInterceptors(FileInterceptor('profileImg'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: UpdateUserDto })
   async editProfile(
     @Param('id') id: string,
     @Body() dto: UpdateUserDto,
