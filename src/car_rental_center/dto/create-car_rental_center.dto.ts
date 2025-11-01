@@ -1,51 +1,62 @@
-import { Type } from 'class-transformer';
 import {
-  IsArray, IsBoolean, IsDecimal, IsOptional, IsString, ValidateNested,
+  IsArray,
+  IsOptional,
+  IsString,
+  IsNumber,
+  Min,
+  Max,
+  IsObject,
 } from 'class-validator';
-import {
-  BranchDto,
-  ContactsDto,
-  CrcPoliciesDto,
-  FacilitiesDto,
-  OpeningHourDto,
-  PickupDropoffDto,
-  SubtopicRatingsDto,
-} from '../../shared/dto/common.dto';
+import { Type } from 'class-transformer';
 
 export class CreateCarRentalCenterDto {
-  @IsString() id!: string;
-  @IsString() name!: string;
+  // = UserService.id (FK) และเป็น PK ของ CarRentalCenter
 
-  @IsOptional() @IsString() type?: string;
-  @IsOptional() @IsString() description?: string;
-  @IsOptional() @IsString() image?: string;
+  id!: string;
 
-  @IsOptional() @IsArray() @IsString({ each: true }) pictures?: string[];
-  @IsOptional() @IsString() facility?: string;
-  @IsOptional() @ValidateNested() @Type(() => FacilitiesDto) facilities?: FacilitiesDto;
+  @IsString()
+  name!: string;
 
-  // rating Decimal(3,1)
-  @IsOptional() @IsDecimal({ decimal_digits: '1' }) rating?: string;
-  @IsOptional() subtopicRatings?: SubtopicRatingsDto;
+  @IsOptional() @IsString()
+  description?: string;
 
-  @IsOptional() @IsString() locationSummary?: string;
-  @IsOptional() @IsArray() @IsString({ each: true }) nearbyLocations?: string[];
+  @IsOptional() @IsString()
+  image?: string;
 
-  @IsOptional() @IsString() contact?: string;
-  @IsOptional() @ValidateNested() @Type(() => ContactsDto) contacts?: ContactsDto;
+  // String[]
+  @IsOptional() @IsArray() @IsString({ each: true })
+  pictures?: string[];
 
-  @IsOptional() @ValidateNested({ each: true }) @Type(() => OpeningHourDto)
-  openingHours?: OpeningHourDto[];
+  // Decimal(3,1) in DB — รับจาก client เป็น number (แนะนำ 0..5)
+  @IsOptional() @Type(() => Number) @IsNumber() @Min(0) @Max(5)
+  rating?: number;
 
-  @IsOptional() @ValidateNested() @Type(() => PickupDropoffDto)
-  pickupDropoff?: PickupDropoffDto;
+  // Json fields (คาดหวังเป็น object)
+  @IsOptional() @IsObject()
+  branches?: Record<string, any>;
 
-  @IsOptional() @ValidateNested({ each: true }) @Type(() => BranchDto)
-  branches?: BranchDto[];
+  @IsOptional() @IsObject()
+  contacts?: Record<string, any>;
 
-  @IsOptional() @ValidateNested() @Type(() => CrcPoliciesDto)
-  policies?: CrcPoliciesDto;
+  @IsOptional() @IsObject()
+  facilities?: Record<string, any>;
 
-  @IsOptional() @IsArray() @IsString({ each: true }) paymentMethods?: string[];
-  @IsOptional() @IsArray() @IsString({ each: true }) requiredDocs?: string[];
+  @IsOptional() @IsObject()
+  openingHours?: Record<string, any>;
+
+  @IsOptional() @IsObject()
+  anotherServices?: Record<string, any>;
+
+  @IsOptional() @IsObject()
+  subtopicRatings?: Record<string, any>;
+
+  @IsOptional() @IsArray() @IsString({ each: true })
+  paymentMethods?: string[];
+
+  @IsOptional() @IsArray() @IsString({ each: true })
+  requiredDocs?: string[];
+
+  // misc
+  @IsOptional() @IsString()
+  type?: string;
 }

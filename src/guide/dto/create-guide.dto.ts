@@ -8,7 +8,7 @@ import {
 } from '../../shared/dto/common.dto';
 
 export class CreateGuideDto {
-  @IsString() id!: string;
+  id!: string;
   @IsString() name!: string;
 
   @IsOptional() @IsString() description?: string;

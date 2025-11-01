@@ -17,16 +17,10 @@ async createHotelService(
   dto: CreateUserServiceDto,
   createHotelDto: CreateHotelDto,
 ) {
-  // ✅ ป้องกัน undefined + บังคับคีย์ที่ schema ต้องมี
   if (!dto) throw new BadRequestException('Missing dto');
-  if (!dto.id) throw new BadRequestException('dto.id is required');
   if (!dto.ownerId) throw new BadRequestException('dto.ownerId is required');
   if (!dto.name) throw new BadRequestException('dto.name is required');
 
-  // ถ้ากำหนดกติกาว่า Hotel.id ต้องเท่ากับ Service.id ให้ตรวจให้ตรง
-  if (createHotelDto?.serviceId && createHotelDto.serviceId !== dto.id) {
-    throw new BadRequestException('createHotelDto.serviceId must equal dto.id');
-  }
 
   try {
     return await this.prisma.$transaction(async (tx) => {
@@ -48,7 +42,6 @@ async createHotelService(
 
       const hotel = await tx.hotel.create({
         data: {
-          // ✅ ใช้ id เดียวกับ service ตามสัญญา
           id: service.id,
 
           name: payload.name ?? dto.name,
@@ -110,14 +103,10 @@ async createHotelService(
   ) {
     // ✅ ป้องกันค่า undefined ตั้งแต่ต้น (สำคัญเพราะ schema ของคุณบังคับ id)
     if (!dto) throw new BadRequestException('Missing dto');
-    if (!dto.id) throw new BadRequestException('dto.id is required');
+
     if (!dto.ownerId) throw new BadRequestException('dto.ownerId is required');
     if (!dto.name) throw new BadRequestException('dto.name is required');
 
-    // ถ้า DTO ร้านกำหนดว่า id ต้อง “ตรงกับ” service.id ให้เช็ค/เซ็ตให้ตรง
-    if (createRestaurantDto?.id && createRestaurantDto.id !== dto.id) {
-      throw new BadRequestException('createRestaurantDto.id must equal dto.id');
-    }
 
     try {
       return await this.prisma.$transaction(async (tx) => {
@@ -175,11 +164,6 @@ async createHotelService(
             dietaryTags: payload.dietaryTags,
             services: payload.services,
             paymentMethods: payload.paymentMethods,
-
-            // ถ้า schema ของคุณใช้ relation object แทน PK เดียว:
-            // service: { connect: { id: service.id } },
-            // หรือถ้าใช้ FK ชื่อ serviceId:
-            // serviceId: service.id,
           },
         });
 
@@ -208,14 +192,12 @@ async createHotelService(
   async createCarRentalService(dto: CreateUserServiceDto, createCrcDto: CreateCarRentalCenterDto) {
     // ตรวจค่าบังคับกันพลาดก่อน
     if (!dto) throw new BadRequestException('Missing dto');
-    if (!dto.id) throw new BadRequestException('dto.id is required');
+  
     if (!dto.ownerId) throw new BadRequestException('dto.ownerId is required');
     if (!dto.name) throw new BadRequestException('dto.name is required');
 
     // ถ้าอยากให้ PK ของ CarRentalCenter เท่ากับ service.id เหมือน Restaurant/Hotel:
-    if (createCrcDto?.id && createCrcDto.id !== dto.id) {
-      throw new BadRequestException('createCarRentalCenterDto.id must equal dto.id');
-    }
+
 
     try {
       return await this.prisma.$transaction(async (tx) => {
@@ -293,14 +275,8 @@ async createHotelService(
   async createGuideService(dto: CreateUserServiceDto, createGuideDto: CreateGuideDto) {
     // ✅ validate ขั้นต้นกันค่า undefined
     if (!dto) throw new BadRequestException('Missing dto');
-    if (!dto.id) throw new BadRequestException('dto.id is required');
     if (!dto.ownerId) throw new BadRequestException('dto.ownerId is required');
     if (!dto.name) throw new BadRequestException('dto.name is required');
-
-    // ถ้า design ให้ PK ของ Guide เท่ากับ service.id ให้บังคับให้ตรง
-    if (createGuideDto?.id && createGuideDto.id !== dto.id) {
-      throw new BadRequestException('createGuideDto.id must equal dto.id');
-    }
 
     try {
       return await this.prisma.$transaction(async (tx) => {

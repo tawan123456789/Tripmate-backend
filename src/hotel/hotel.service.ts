@@ -8,7 +8,7 @@ import { Prisma } from '@prisma/client';
 import { CreateHotelDto } from './dto/create-hotel.dto';
 import { CreateRoomDto } from 'src/room/dto/create-room.dto';
 import { UpdateHotelDto } from './dto/update-hotel.dto';
-
+import { BadRequestException } from '@nestjs/common';
 import { MinioService } from 'src/minio/minio.service';
 import { v4 as uuidv4 } from 'uuid';
 @Injectable()
@@ -22,61 +22,102 @@ export class HotelService {
     return new Prisma.Decimal(fixed);
   }
 
+    private toDecimalOrUndefined(v?: number | null) {
+    if (v == null) return undefined;
+    const fixed = Math.round(v * 10) / 10;
+    return new Prisma.Decimal(fixed);
+  }
+
   async create(dto: CreateHotelDto) {
     try {
-      // (ทางเลือก) ตรวจว่ามี service ต้นทางจริงไหม ถ้าต้องการบังคับความถูกต้อง:
+      // ✅ ตรวจว่ามี service ต้นทางจริง (Hotel.id = service.id)
       const service = await this.prisma.userService.findUnique({
         where: { id: dto.serviceId },
         select: { id: true },
       });
-      if (!service) {
-        throw new NotFoundException('Service not found');
-      }
+      if (!service) throw new NotFoundException('Service not found');
 
       return await this.prisma.hotel.create({
         data: {
-          id: dto.serviceId,                 // ใช้ serviceId เป็น id โรงแรม
+          id: dto.serviceId,                   // ใช้ serviceId เป็น PK ของ Hotel
           name: dto.name,
-
-          // optional primitives
           type: dto.type ?? undefined,
           star: dto.star ?? undefined,
           description: dto.description ?? undefined,
-   
 
-          // arrays — ถ้าไม่ส่ง ปล่อย undefined เพื่อให้ Prisma ใช้ค่า default ใน schema
+          // Arrays: ส่ง undefined เพื่อให้ Prisma ใช้ default ที่สคีมา (ถ้ามี)
           pictures: dto.pictures ?? undefined,
           nearbyLocations: dto.nearbyLocations ?? undefined,
 
-       
-
           // JSON fields
-          facilities: dto.facilities as any,          // Prisma.JsonValue
-          subtopicRatings: dto.subtopicRatings as any,
+          facilities: (dto.facilities as any) ?? undefined,
+          subtopicRatings: (dto.subtopicRatings as any) ?? undefined,
 
           // Decimal(3,1)
           rating: this.toDecimalOrNull(dto.rating),
 
-          // policy / misc
+          // misc/policy
           checkIn: dto.checkIn ?? undefined,
           checkOut: dto.checkOut ?? undefined,
           breakfast: dto.breakfast ?? undefined,
-          petAllow:
-            typeof dto.petAllow === 'boolean' ? dto.petAllow : undefined,
+          petAllow: typeof dto.petAllow === 'boolean' ? dto.petAllow : undefined,
           contact: dto.contact ?? undefined,
           locationSummary: dto.locationSummary ?? undefined,
         },
+        include: {
+          rooms: { include: { options: true } },
+          service: { include: { reviews: true } },
+        },
       });
-    } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2002'
-      ) {
-        // unique key ซ้ำ (เช่น id ซ้ำ)
+    } catch (e: any) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
         throw new ConflictException('hotel id already exists');
       }
       throw e;
     }
+  }
+  
+  async update(id: string, dto: UpdateHotelDto) {
+    // ป้องกันการพยายามแก้ PK ผ่าน dto.serviceId
+    if ((dto as any).serviceId && (dto as any).serviceId !== id) {
+      throw new BadRequestException('serviceId cannot be changed');
+    }
+
+    // เช็คว่ามี hotel จริง
+    const existing = await this.prisma.hotel.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Hotel not found');
+
+    return this.prisma.hotel.update({
+      where: { id },
+      data: {
+        // primitives
+        name: dto.name ?? undefined,
+        type: dto.type ?? undefined,
+        star: dto.star ?? undefined,
+        description: dto.description ?? undefined,
+        checkIn: dto.checkIn ?? undefined,
+        checkOut: dto.checkOut ?? undefined,
+        breakfast: dto.breakfast ?? undefined,
+        petAllow: typeof dto.petAllow === 'boolean' ? dto.petAllow : undefined,
+        contact: dto.contact ?? undefined,
+        locationSummary: dto.locationSummary ?? undefined,
+
+        // arrays (แทนที่ทั้งอาเรย์ถ้าส่งมา)
+        pictures: Array.isArray(dto.pictures) ? { set: dto.pictures } : undefined,
+        nearbyLocations: Array.isArray(dto.nearbyLocations) ? { set: dto.nearbyLocations } : undefined,
+
+        // JSON
+        facilities: dto.facilities as any ?? undefined,
+        subtopicRatings: dto.subtopicRatings as any ?? undefined,
+
+        // Decimal
+        rating: this.toDecimalOrUndefined(dto.rating),
+      },
+      include: {
+        rooms: { include: { options: true } },
+        service: { include: { reviews: true } },
+      },
+    });
   }
   
 

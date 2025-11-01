@@ -5,47 +5,22 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  Max,
-  Min,
-  ValidateNested,
   IsObject,
+  Min,
+  Max,
+  IsUUID,
 } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
-
-/** โครง facilities (จะเก็บลง Prisma.Json) */
-export class HotelFacilitiesDto {
-  @IsOptional() @IsArray() @IsString({ each: true }) health?: string[];
-  @IsOptional() @IsArray() @IsString({ each: true }) internet?: string[];
-  @IsOptional() @IsArray() @IsString({ each: true }) food?: string[];
-  @IsOptional() @IsArray() @IsString({ each: true }) accessibility?: string[];
-  @IsOptional() @IsArray() @IsString({ each: true }) service?: string[];
-  @IsOptional() @IsArray() @IsString({ each: true }) transportation?: string[];
-}
-
-/** โครง subtopicRatings (0–10) */
-export class SubtopicRatingsDto {
-  @IsOptional() @IsNumber() @Min(0) @Max(10) cleanliness?: number;
-  @IsOptional() @IsNumber() @Min(0) @Max(10) comfort?: number;
-  @IsOptional() @IsNumber() @Min(0) @Max(10) meal?: number;
-  @IsOptional() @IsNumber() @Min(0) @Max(10) location?: number;
-  @IsOptional() @IsNumber() @Min(0) @Max(10) service?: number;
-  @IsOptional() @IsNumber() @Min(0) @Max(10) facilities?: number;
-}
-
-/** helper: แปลงค่าให้เป็น string[] (รับได้ทั้ง string เดี่ยวหรือ array) */
-const toStringArray = (v: any) => {
-  if (v == null || v === '') return undefined;
-  if (Array.isArray(v)) return v.map(String);
-  return String(v).split(',').map(s => s.trim()).filter(Boolean);
-};
+import { Type } from 'class-transformer';
 
 export class CreateHotelDto {
-  serviceId!: string; // id ของ service (userService) ที่สร้างโรงแรมนี้ขึ้นมา
+  // ใช้ id ของ UserService (Hotel.id = service_id)
+  serviceId!: string;
+
   @IsString()
   name!: string;
 
   @IsOptional() @IsString()
-  type?: string; // "hotel" | "resort" | ...
+  type?: string;
 
   @IsOptional() @IsInt() @Min(1) @Max(5)
   star?: number;
@@ -57,20 +32,17 @@ export class CreateHotelDto {
   image?: string;
 
   @IsOptional() @IsArray() @IsString({ each: true })
-  @Transform(({ value }) => toStringArray(value))
-  pictures?: string[]; // Prisma default = []
+  pictures?: string[];
 
-  @IsOptional() @IsString()
-  facility?: string; // legacy ;wifi;pool;
+  @IsOptional() @IsObject()
+  facilities?: Record<string, any>;
 
-  @IsOptional() @IsObject() @ValidateNested() @Type(() => HotelFacilitiesDto)
-  facilities?: HotelFacilitiesDto; // Json
+  @IsOptional() @Type(() => Number) @IsNumber() @Min(0) @Max(5)
+  rating?: number;  // Prisma.Decimal(3,1)
 
-  @IsOptional() @IsNumber() @Min(0) @Max(10)
-  @Transform(({ value }) => (value === '' || value == null ? undefined : Number(value)))
-  rating?: number; // map → Decimal(3,1)
+  @IsOptional() @IsObject()
+  subtopicRatings?: Record<string, any>;
 
-  // policy fields
   @IsOptional() @IsString()
   checkIn?: string;
 
@@ -80,25 +52,18 @@ export class CreateHotelDto {
   @IsOptional() @IsString()
   breakfast?: string;
 
-  @IsOptional()
-  @IsBoolean()
-  @Transform(({ value }) =>
-    value === 'true' ? true : value === 'false' ? false : value
-  )
+  @IsOptional() @IsBoolean()
   petAllow?: boolean;
 
   @IsOptional() @IsString()
   contact?: string;
 
-  @IsOptional() @IsObject() @ValidateNested() @Type(() => SubtopicRatingsDto)
-  subtopicRatings?: SubtopicRatingsDto; // Json
-
   @IsOptional() @IsString()
   locationSummary?: string;
 
   @IsOptional() @IsArray() @IsString({ each: true })
-  @Transform(({ value }) => toStringArray(value))
-  nearbyLocations?: string[]; // Prisma default = []
+  nearbyLocations?: string[];
 
-  // หมายเหตุ: field relation (service) ไม่รวมใน DTO นี้
+  @IsOptional() @IsString()
+  facility?: string;  // legacy text (ใช้ในบางระบบเก่า)
 }

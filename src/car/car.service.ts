@@ -41,10 +41,10 @@ export class CarService {
           pictures: dto.pictures,
           transmission: dto.transmission,
           year: dto.year,
+
           availability: dto.availability as any,
           insurance: dto.insurance as any,
 
-          // ✅ แปลง Decimal อย่างปลอดภัย (ส่งเฉพาะตอนมีค่า)
           ...(dto.pricePerDay  != null && { pricePerDay:  new Prisma.Decimal(dto.pricePerDay) }),
           ...(dto.pricePerHour != null && { pricePerHour: new Prisma.Decimal(dto.pricePerHour) }),
           ...(dto.deposit      != null && { deposit:      new Prisma.Decimal(dto.deposit) }),

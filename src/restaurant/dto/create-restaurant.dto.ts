@@ -3,7 +3,7 @@ import {
   IsArray, IsBoolean, IsDecimal, IsInt, IsOptional, IsString, Max, Min, ValidateNested, IsUrl,
 } from 'class-validator';
 import {
-  ContactsDto,
+  ContactsDto,   
   FacilitiesDto,
   OpeningHourDto,
   ReservationPolicyDto,
@@ -11,7 +11,6 @@ import {
 } from '../../shared/dto/common.dto';
 
 export class CreateRestaurantDto {
-  @IsString()
   id!: string; // ต้องตรงกับ service.id ด้วยในชั้นใช้งาน
 
   @IsString()
