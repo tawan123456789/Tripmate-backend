@@ -35,15 +35,12 @@ export class UsersController {
 
 
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('profileImg'))
-  @ApiConsumes('multipart/form-data')
   @ApiBody({ type: UpdateUserDto })
   async editProfile(
     @Param('id') id: string,
     @Body() dto: UpdateUserDto,
-    @UploadedFile() profileImg?: Express.Multer.File
   ) {
-    return this.usersService.update(id, dto, profileImg);
+    return this.usersService.update(id, dto);
   }
 
   @Delete(':id')
@@ -61,7 +58,27 @@ export class UsersController {
   }
 
 
-  
+    @Post('upload/:userId')
+    @UseInterceptors(FileInterceptor('profileImg'))
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+      schema: {
+        type: 'object',
+        properties: {
+          profileImg: {
+            type: 'array',
+            items: { type: 'string', format: 'binary' }, 
+          },
+        },
+        required: ['profileImg'], 
+      },
+    })
+    uploadUserImages(
+      @Param('userId') userId: string,
+      @UploadedFile() profileImg: Express.Multer.File,
+    ) {
+      return this.usersService.uploadUserImages(userId, profileImg);
+    }
 
 
 }

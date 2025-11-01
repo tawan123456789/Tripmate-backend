@@ -380,20 +380,23 @@ export class UsersService {
 
   }
 
-  async update(id: string, dto: UpdateUserDto, profileImg?: Express.Multer.File) {
+  async update(id: string, dto: UpdateUserDto) {
     try {
-      let profileImgUrl = dto.profileImg;
-      if (profileImg) {
-        const fileName = `${uuidv4()}${profileImg.originalname.substring(profileImg.originalname.lastIndexOf('.'))}`;
-        const url = await this.minioService.uploadAvatar(profileImg.buffer, fileName, profileImg.mimetype);
-        profileImgUrl = url;
-      }
+      const user = await this.prisma.user.findUnique({ where: { id } });
+
       return await this.prisma.user.update({
         where: { id },
         data: {
-          ...dto,
-          birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
-          profileImg: profileImgUrl,
+          fname: dto.fname || user?.fname,
+          lname: dto.lname || user?.lname,
+          username: dto.username || user?.username,
+          email: dto.email || user?.email,
+          gender: dto.gender || user?.gender,
+          status: dto.status || user?.status, 
+          birthDate: dto.birthDate ? new Date(dto.birthDate) : user?.birthDate,
+          role: dto.role || user?.role,
+          phone: dto.phone || user?.phone,
+          profileImg: user?.profileImg,
         },
       });
     } catch (e) {
@@ -405,6 +408,22 @@ export class UsersService {
       }
       throw e;
     }
+  }
+
+  async uploadUserImages(id: string, file: Express.Multer.File) {
+    const existing = await this.prisma.user.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException('User not found');
+    }
+    const fileName = `${uuidv4()}${file.originalname.substring(file.originalname.lastIndexOf('.'))}`;
+    const url = await this.minioService.uploadAvatar(file.buffer, fileName, file.mimetype);
+    
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        profileImg: url,
+      },
+    });
   }
 
   async remove(id: string) {
