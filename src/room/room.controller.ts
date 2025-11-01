@@ -6,10 +6,15 @@ import { UseInterceptors } from '@nestjs/common/decorators';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { UploadedFiles } from '@nestjs/common/decorators';
 import { ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { CreateRoomOptionDto } from './dto/room-option.dto';
 @Controller('room')
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
-
+  
+  @Post('add-room-options')
+  addRoomOptions(@Body() roomId: string, hotelId: string, createRoomDto: CreateRoomOptionDto) {
+    return this.roomService.addRoomOption(roomId, hotelId, createRoomDto);
+  }
   @Post()
   create(@Body() createRoomDto: CreateRoomDto) {
     return this.roomService.create(createRoomDto);

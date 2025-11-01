@@ -13,12 +13,18 @@ import { Type } from 'class-transformer';
 export class CreateCarDto {
   @IsString()
   name!: string;
-  
-  @IsString()
-  id!: string;           // ต้องไม่ซ้ำภายในระบบรถ
 
+  // PK ของรถ
   @IsString()
-  crcId!: string;        // อ้างอิง CarRentalCenter.crc_id
+  id!: string;
+
+  // FK ไป CarRentalCenter.id (crc_id)
+  @IsString()
+  crcId!: string;
+
+  // ====== ฟิลด์ตามสคีมา ======
+  @IsOptional() @IsString()
+  type?: string;
 
   @IsOptional() @IsString()
   model?: string;
@@ -26,53 +32,55 @@ export class CreateCarDto {
   @IsOptional() @IsString()
   description?: string;
 
-  @IsOptional() @IsInt() @Min(1)
-  seats?: number;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1)
+  seats?: number; // maps -> carseat (Int?)
 
-  @IsOptional() @IsString()
-  image?: string;
+  @IsOptional() @IsArray() @IsString({ each: true })
+  pictures?: string[]; // default []
 
-  // Decimal ใน Prisma: รับเป็น number จาก client
+  // Decimal(10,2)
   @IsOptional() @Type(() => Number) @IsNumber()
-  pricePerDay?: number;     // Prisma Decimal(10,2)
+  pricePerDay?: number;
 
   @IsOptional() @Type(() => Number) @IsNumber()
-  pricePerHour?: number;    // Prisma Decimal(10,2)
+  pricePerHour?: number;
 
   @IsOptional() @IsString()
   brand?: string;
 
   @IsOptional() @IsString()
-  currency?: string;        // default "THB" ใน DB
+  currency?: string; // default "THB"
 
   @IsOptional() @Type(() => Number) @IsNumber()
-  deposit?: number;         // Prisma Decimal(10,2)
+  deposit?: number; // Decimal(10,2)
 
-  @IsOptional() @IsInt() @Min(0)
+  @IsOptional() @Type(() => Number) @IsInt() @Min(0)
   doors?: number;
 
   @IsOptional() @IsArray() @IsString({ each: true })
-  features?: string[];
+  features?: string[]; // default []
 
   @IsOptional() @IsString()
   fuelType?: string;
 
-  @IsOptional() @IsInt() @Min(0)
+  @IsOptional() @IsString()
+  fuelPolicy?: string; // maps -> fuel_policy
+
+  @IsOptional() @IsString()
+  pickupLocation?: string; // maps -> pickup_location
+
+  @IsOptional() @Type(() => Number) @IsInt() @Min(0)
   luggage?: number;
 
-  @IsOptional() @IsInt() @Min(0)
-  mileageLimitKm?: number;
-
-  @IsOptional() @IsArray() @IsString({ each: true })
-  pictures?: string[];
+  @IsOptional() @Type(() => Number) @IsInt() @Min(0)
+  mileageLimitKm?: number; // maps -> mileage_limit_km
 
   @IsOptional() @IsString()
   transmission?: string;
 
-  @IsOptional() @IsInt()
+  @IsOptional() @Type(() => Number) @IsInt()
   year?: number;
 
-  // JSON ฟิลด์: ให้ส่งเป็น object มาได้
   @IsOptional() @IsObject()
   availability?: Record<string, any>;
 

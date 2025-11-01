@@ -17,9 +17,11 @@ import { Decimal } from '@prisma/client/runtime/library';
 export class BookingService {
   constructor(private prisma: PrismaService) {}
 
-  private servicePrice = async (serviceId: string, start: Date, end: Date, subServiceId?: string): Promise<number> => {
+  private servicePrice = async (serviceId: string, start: Date, end: Date, subServiceId?: string, discountId?: string, optionId?: string): Promise<number> => {
     let price = 0;
     const service = await this.prisma.userService.findUnique({ where: { id: serviceId } });
+    const discount = discountId ? await this.prisma.discount.findUnique({ where: { id: discountId } }) : null;
+
     const diffMs = end.getTime() - start.getTime();
     const totalHours = diffMs / (1000 * 60 * 60);
     if (service?.type === "guide") {
@@ -47,6 +49,7 @@ export class BookingService {
     }
     else if(service?.type == "hotel"){
       const hotel = await this.prisma.hotel.findUnique({ where: { id: serviceId } });
+      const option = await this.prisma.roomOption.findUnique({where: {id: optionId, }});
       const room = await this.prisma.room.findFirst({
         where: {
           id: subServiceId,
@@ -55,12 +58,19 @@ export class BookingService {
       });
       if (!hotel) throw new Error(`Hotel not found for serviceId ${serviceId}`);
       if(!room) throw new Error(`Room not found for subServiceId ${subServiceId}`);
-      // if (room.pricePerNight == null) throw new Error(`Room pricePerNight not set`);
-      // const rate: number = room.pricePerNight.toNumber();
+      if (option?.price == null) throw new Error(`Option price not set`);
+      const rate: number = option.price.toNumber();
       const startDateOnly = new Date(start.getFullYear(), start.getMonth(), start.getDate());
       const endDateOnly = new Date(end.getFullYear(), end.getMonth(), end.getDate());
       const diffDays = Math.floor((endDateOnly.getTime() - startDateOnly.getTime()) / (1000 * 60 * 60 * 24));
-      // price = rate * diffDays;
+      price = rate * diffDays;
+    }
+    if (discount && discount.type && discount.value) {
+      if (discount.type === 'percentage') {
+        price = price * (1 - (discount.value?.toNumber() / 100));
+      } else if (discount.type === 'fixed_amount') {
+        price = price - discount.value?.toNumber();
+      }
     }
     return price;
   };
@@ -129,8 +139,6 @@ export class BookingService {
       // กำหนดสถานะที่ถือว่า “ครองสิทธิ์ช่วงเวลา” จริง ๆ
       const ACTIVE_STATUSES = ['pending', 'booked', 'confirmed'] as const;
 
-      // --- คำนิยามทับซ้อนแบบ half-open interval [start, end) ---
-      // existing.start < new.end   &&   (existing.end > new.start || existing.end IS NULL)
       const timeOverlapWhere = {
         AND: [
           { startBookingDate: { lt: dto.endBookingDate ?? dto.startBookingDate } },
@@ -158,11 +166,6 @@ export class BookingService {
           throw new BadRequestException('subServiceId is required for this service type');
         }
         baseWhere.subServiceId = dto.subServiceId;
-
-        // ป้องกันกรณี booking เก่าบางอันบันทึก subServiceId เป็น null (legacy) แต่ครองทั้ง service
-        // ถ้าอยากให้ “จองทั้ง service” บล็อกย่อยทั้งหมด ให้เพิ่ม OR แบบนี้:
-        // baseWhere.OR = [{ subServiceId: dto.subServiceId }, { subServiceId: null }];
-        // แต่ถ้าไม่ต้องการพฤติกรรมนี้ ให้คง baseWhere.subServiceId อย่างเดียวไว้
       }
 
       const overlapping = await this.prisma.booking.findFirst({ where: baseWhere });
@@ -183,6 +186,8 @@ export class BookingService {
             dto.startBookingDate,
             dto.endBookingDate,
             dto.subServiceId,
+            dto.optionId,
+            dto.discountId
           ),
           status: dto.status ?? 'booked',
         },

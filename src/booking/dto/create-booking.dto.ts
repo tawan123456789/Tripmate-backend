@@ -59,6 +59,10 @@ export class CreateBookingDto {
   @IsString()
   subServiceId?: string;
 
+  @IsOptional()
+  @IsString()
+  optionId?: string;
+
   @IsString()
   groupId!: string;
 
@@ -82,6 +86,10 @@ export class CreateBookingDto {
   @IsOptional()
   @IsString()
   status?: string;
+
+  @IsOptional()
+  @IsString()
+  discountId?: string;
   
   // ถ้ามี enum เช่น 'pending' | 'confirmed' | 'cancelled' ค่อยเปลี่ยนเป็น @IsIn([...])
 }
