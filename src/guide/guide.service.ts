@@ -32,11 +32,11 @@ export class GuideService {
     }
   
   findAll() {
-    return this.prisma.guide.findMany();
+    return this.prisma.guide.findMany({include: { service: { include: { reviews: true, location: true } } }});
   }
 
   async findOne(id: string) {
-    const location = await this.prisma.guide.findUnique({ where: { id } });
+    const location = await this.prisma.guide.findUnique({ where: { id }, include: { service: { include: { reviews: true, location: true } } } });
         if (!location) throw new NotFoundException('Guide not found');
         return location;
   }

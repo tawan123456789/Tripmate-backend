@@ -122,11 +122,11 @@ export class HotelService {
   
 
   findAll() {
-    return this.prisma.hotel.findMany({include: { rooms: { include: { options: true } } , service: { include: { reviews: true } } }});
+    return this.prisma.hotel.findMany({include: { rooms: { include: { options: true } } , service: { include: { reviews: true ,location: true } } }});
   }
 
   async findOne(id: string) {
-    const location = await this.prisma.hotel.findUnique({ where: { id }, include: { rooms: { include: { options: true } }, service: { include: { reviews: true } } } });
+    const location = await this.prisma.hotel.findUnique({ where: { id }, include: { rooms: { include: { options: true } }, service: { include: { reviews: true ,location: true } } } });
         if (!location) throw new NotFoundException('Hotel not found');
         return location;
   }
