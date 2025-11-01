@@ -12,6 +12,7 @@ import { Type } from 'class-transformer';
 
 export class CreateCarDto {
   @IsString()
+  
   name!: string;
 
   // PK ของรถ
