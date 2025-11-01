@@ -183,16 +183,17 @@ model TripService {
 }
 
 model Place {
-  id          String     @id @map("place_id")
+  id          String     @id @default(uuid()) @map("place_id")
   locationId  String?    @map("location_id")
   name        String
   description String?
-  placeImg    String?    @map("place_img")
-  status      String?
+  placeImg    String[]   @map("place_img") @default([])
+  
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime?  @updatedAt @map("updated_at")
   deletedAt   DateTime?  @map("deleted_at")
   isAttraction Boolean?  @map("is_attraction")
+  status      String?
   location    Location?  @relation(fields: [locationId], references: [id])
   tripUnits   TripUnit[]
   reviews     Review[]
@@ -202,7 +203,7 @@ model Place {
 }
 
 model Location {
-  id            String        @id @map("location_id")
+  id            String        @id @default(uuid()) @map("location_id")
   lat           Float
   long          Float
   name          String
@@ -224,7 +225,7 @@ model Location {
 }
 
 model UserService {
-  id              String           @id @map("service_id")
+  id              String           @id @default(uuid()) @map("service_id")
   ownerId         String           @map("owner_id") @db.Uuid
   locationId      String?          @map("location_id")
   name            String
@@ -253,23 +254,26 @@ model UserService {
 
 model Hotel {
   id              String      @id @map("hotel_id")
+  type            String?
+  star            Int?
   name            String
   description     String?
-  facility        String?
+  pictures        String[]    @default([])
+  facilities      Json?
   rating          Decimal?    @db.Decimal(3, 1)
-  image           String?
+  subtopicRatings Json?       @map("subtopic_ratings")
+
+
   breakfast       String?
   checkIn         String?
   checkOut        String?
   contact         String?
-  facilities      Json?
+  
   locationSummary String?     @map("location_text")
   nearbyLocations String[]    @default([]) @map("nearby_locations")
   petAllow        Boolean?    @map("pet_allow")
-  pictures        String[]    @default([])
-  star            Int?
-  subtopicRatings Json?       @map("subtopic_ratings")
-  type            String?
+  
+ 
   service         UserService @relation(fields: [id], references: [id], onDelete: Cascade)
   rooms           Room[]
 
@@ -279,21 +283,44 @@ model Hotel {
 model Room {
   id            String   @map("room_id")
   hotelId       String   @map("hotel_id")
-  pricePerNight Decimal? @map("price_per_night") @db.Decimal(10, 2)
-  bedType       String?  @map("bed_type")
-  personPerRoom Int?     @map("person_per_room")
-  description   String?
-  image         String?
-  facilities    String[] @default([]) @map("facilities")
+
   name          String?
   pictures      String[] @default([])
+  description   String?
+  facilities    String[] @default([]) @map("facilities")
+ 
   sizeSqm       Int?     @map("size_sqm")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime? @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
   hotel         Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  options       RoomOption[]
+
 
   @@id([id, hotelId])
   @@index([hotelId])
   @@map("Room")
 }
+
+
+model RoomOption {
+  id       String   @id @default(uuid()) @map("room_option_id")
+  roomId   String   @map("room_id")
+  hotelId  String   @map("hotel_id")
+
+  name     String
+  bed      String?
+  maxGuest Int?     @map("max_guest")
+  price    Decimal? @db.Decimal(10, 2)
+  room     Room     @relation(fields: [roomId, hotelId], references: [id, hotelId], onDelete: Cascade)
+
+  @@unique([roomId, hotelId, name]) // ป้องกันซ้ำตามธรรมชาติ
+  @@index([roomId, hotelId])
+  @@map("RoomOption")
+}
+
+
 
 model Restaurant {
   id                String      @id @map("restaurant_id")
@@ -333,19 +360,16 @@ model CarRentalCenter {
   name            String
   description     String?
   image           String?
+  pictures        String[]    @default([])
   rating          Decimal?    @db.Decimal(3, 1)
   branches        Json?       @map("branches")
-  contact         String?
   contacts        Json?
   facilities      Json?
-  facility        String?
-  locationSummary String?     @map("location_text")
   nearbyLocations String[]    @default([]) @map("nearby_locations")
   openingHours    Json?       @map("opening_hours")
   paymentMethods  String[]    @default([]) @map("payment_methods")
-  pickupDropoff   Json?       @map("pickup_dropoff")
-  pictures        String[]    @default([])
-  policies        Json?
+  anotherServices  Json?       @map("another_services")
+
   requiredDocs    String[]    @default([]) @map("required_docs")
   subtopicRatings Json?       @map("subtopic_ratings")
   type            String?
@@ -360,24 +384,30 @@ model Car {
   name           String
   id             String          @id @map("car_id")
   crcId          String          @map("crc_id")
+
+  type           String?
   pricePerDay    Decimal?        @map("price_per_day") @db.Decimal(10, 2)
   model          String?
-  description    String?         @map("description")
+  description    String?
   seats          Int?            @map("carseat")
-  image          String?
+  pictures       String[]        @default([])
   createdAt      DateTime?       @map("created_at")
   updatedAt      DateTime?       @map("updated_at")
   availability   Json?
   brand          String?
   currency       String?         @default("THB")
+
   deposit        Decimal?        @db.Decimal(10, 2)
   doors          Int?
   features       String[]        @default([])
+
   fuelType       String?
+  fuelPolicy     String?         @map("fuel_policy")
+  pickupLocation  String?         @map("pickup_location")
   insurance      Json?
   luggage        Int?
   mileageLimitKm Int?            @map("mileage_limit_km")
-  pictures       String[]        @default([])
+
   pricePerHour   Decimal?        @map("price_per_hour") @db.Decimal(10, 2)
   transmission   String?
   year           Int?
