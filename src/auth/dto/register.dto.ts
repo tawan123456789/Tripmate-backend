@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum } from 'class-validator';
+import { IsDate, IsEnum, IsOptional } from 'class-validator';
 import { Role } from '../../users/dto/create-user.dto';
 
 export class RegisterDto {
@@ -24,7 +24,8 @@ export class RegisterWithFileDto {
   username: string;
 
   @ApiPropertyOptional()
-  birthDate?: string;
+  @IsDate()
+  birthDate?: Date;
 
   @ApiPropertyOptional({ enum: Role })
   @IsEnum(Role)
@@ -34,6 +35,7 @@ export class RegisterWithFileDto {
   gender?: string;
 
   @ApiPropertyOptional()
+  @IsOptional()
   email?: string;
 
   @ApiProperty()
