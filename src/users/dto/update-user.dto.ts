@@ -3,6 +3,8 @@ import { CreateUserDto } from './create-user.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsDate, IsEnum, IsOptional } from 'class-validator';
 import { Role } from './create-user.dto';
+import { Transform } from 'class-transformer';
+import { IsDateString } from 'class-validator';
 export class UpdateUserDto {
       @ApiPropertyOptional()
       @IsOptional()
@@ -16,10 +18,10 @@ export class UpdateUserDto {
       @IsOptional()
       username?: string;
     
-      @ApiPropertyOptional()
-      @IsOptional()
-      
-      @IsDate()
+        @ApiPropertyOptional({ example: '2001-09-09' })
+        @IsOptional()
+        @Transform(({ value }) => (value === '' || value === null ? undefined : value))
+        @IsDateString() 
       birthDate?: Date;
     
       @ApiPropertyOptional({ enum: Role })
