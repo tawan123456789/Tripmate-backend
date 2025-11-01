@@ -26,6 +26,7 @@ export class CarController {
   }
 
   @Patch(':id')
+  @ApiBody({ type: UpdateCarDto })
   update(@Param('id') id: string, @Body() updateCarDto: UpdateCarDto) {
     return this.carService.update(id, updateCarDto);
   }
