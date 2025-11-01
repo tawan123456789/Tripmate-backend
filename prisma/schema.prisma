@@ -171,6 +171,7 @@ model TripService {
   tripId    String      @map("trip_id")
   serviceId String      @map("service_id")
   date      DateTime    @map("date_time")
+  meta      Json?        @map("meta")
   status    String?
   createdAt DateTime    @default(now()) @map("created_at")
   updatedAt DateTime?   @updatedAt @map("updated_at")
