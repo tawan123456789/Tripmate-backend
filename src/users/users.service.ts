@@ -479,4 +479,195 @@ export class UsersService {
       data: { password: hashedPassword },
     });
   }
+
+  async findBookmarks(userId: string, type: string) {
+
+    if(type == 'trip'){
+      return this.prisma.bookmark.findMany({
+        where: {
+          userId: userId,
+          status: 'trip',
+        },
+        include: {
+          trip: true,
+        },
+      });
+    }
+      else if(type == 'place'){
+      const bookmarks = await this.prisma.bookmark.findMany({
+        where: {
+          userId: userId,
+          status: 'place',
+        },
+        include: {
+          place: {
+            include: {
+              location: true,
+              reviews: true,
+            },
+          },
+        },
+      });
+
+      // Transform to desired format
+      return bookmarks.map(bookmark => {
+        const place = bookmark.place;
+        if (!place) return null;
+
+        // Calculate average rating
+        const reviews = place.reviews || [];
+        const totalRating = reviews.reduce((sum, review) => sum + (review.rating || 0), 0);
+        const avgRating = reviews.length > 0 ? totalRating / reviews.length : 0;
+
+        return {
+          id: place.id,
+          name: place.name,
+          type: "place",
+          pictures: place.placeImg || [],
+          rating: Math.round(avgRating * 10) / 10, // Round to 1 decimal
+          rating_count: reviews.length,
+          location: place.location?.name || '',
+          bookmark: true,
+        };
+      }).filter(item => item !== null);
+    }
+
+    else if(type == "hotel" || type == "restaurant" || type == "car_rental_center" || type == "guide"){
+      // แปลง type เป็นค่าที่ใช้ใน database
+      let serviceType: string;
+      if (type == "hotel") serviceType = "hotel";
+      else if (type == "restaurant") serviceType = "restaurant";
+      else if (type == "car_rental_center") serviceType = "car_rental_center";
+      else if (type == "guide") serviceType = "guide";
+      else throw new NotFoundException('Invalid service type');
+
+      const bookmarks = await this.prisma.bookmark.findMany({
+        where: {
+          userId: userId,
+          status: 'service',
+          service: {
+            type: serviceType, // filter เฉพาะ service type ที่ต้องการ
+          },
+        },
+        include: {
+          service: {
+            include: {
+              location: true,
+              reviews: true,
+              owner: {
+                select: {
+                  id: true,
+                  fname: true,
+                  lname: true,
+                  profileImg: true,
+                },
+              },
+              hotel: type == "hotel",
+              restaurant: type == "restaurant",
+              carRentalCenter: type == "car_rental_center" ? {
+                include: {
+                  cars: true,
+                },
+              } : false,
+              guide: type == "guide",
+            },
+          },
+        },
+      });
+
+      // Transform based on service type
+      return bookmarks.map(bookmark => {
+        const service = bookmark.service;
+        if (!service) return null;
+
+        // Calculate average rating
+        const reviews = service.reviews || [];
+        const totalRating = reviews.reduce((sum, review) => sum + (review.rating || 0), 0);
+        const avgRating = reviews.length > 0 ? totalRating / reviews.length : 0;
+
+        const baseData = {
+          rating: Math.round(avgRating * 10) / 10,
+          rating_count: reviews.length,
+          location: service.location?.name || '',
+          favorite: true,
+        };
+
+        // Hotel
+        if (service.hotel) {
+          const hotel = service.hotel;
+          return {
+            name: hotel.name,
+            star: hotel.star || 0,
+            ...baseData,
+            price: 0, // Price comes from rooms, not hotel directly
+            type: hotel.type || 'hotel',
+            pictures: hotel.pictures || [],
+            hotel_id: hotel.id,
+          };
+        }
+
+        // Restaurant
+        if (service.restaurant) {
+          const restaurant = service.restaurant;
+          return {
+            name: restaurant.name,
+            ...baseData,
+            pictures: restaurant.pictures || [],
+            tag: restaurant.cuisine || '',
+            restaurant_id: restaurant.id,
+          };
+        }
+
+        // Car Rental
+        if (service.carRentalCenter) {
+          const crc = service.carRentalCenter as any; // Type assertion เพราะ conditional include
+          const firstCar = crc.cars?.[0];
+          // Prefer car pictures, then crc.pictures array, then crc.image single string
+          const carPictures = (firstCar?.pictures && firstCar.pictures.length)
+            ? firstCar.pictures
+            : (crc.pictures && crc.pictures.length)
+              ? crc.pictures
+              : (crc.image ? [crc.image] : []);
+          return {
+            name: crc.name,
+            owner: {
+              owner_id: service.owner.id,
+              profile_pic: service.owner.profileImg || undefined,
+              first_name: service.owner.fname,
+              last_name: service.owner.lname,
+            },
+            ...baseData,
+            price: firstCar ? Number(firstCar.pricePerDay || 0) : 0,
+            type: firstCar?.type || 'car',
+            pictures: carPictures,
+            rental_car_id: crc.id,
+          };
+        }
+
+        // Guide
+        if (service.guide) {
+          const guide = service.guide;
+          // Use pictures array if present, otherwise fallback to single `image` field from DB
+          const guidePictures = (guide.pictures && guide.pictures.length) ? guide.pictures : (guide.image ? [guide.image] : []);
+          return {
+            name: guide.name,
+            guider: {
+              user_id: service.owner.id,
+              profile_pic: service.owner.profileImg || undefined,
+              first_name: service.owner.fname,
+              last_name: service.owner.lname,
+            },
+            duration: `${guide.experienceYears || 0} years`, // ใช้ experienceYears แทน
+            ...baseData,
+            price: guide.dayRate ? Number(guide.dayRate) : 0,
+            type: 'guide',
+            pictures: guidePictures,
+            id: guide.id,
+          };
+        }
+
+        return null;
+      }).filter(item => item !== null);
+    }
+  }
 }

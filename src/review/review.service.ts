@@ -23,17 +23,51 @@ export class ReviewService {
                     comment: dto.comment,
                     score1: dto.score1,
                     status: dto.status,
+                    rating:dto.score1
                     
                 }
             });
             return review;
         }
         else{
+            // เช็คว่า serviceId มีอยู่จริงในฐานข้อมูลหรือไม่
+            if (dto.serviceId) {
+                const serviceExists = await this.prisma.userService.findUnique({
+                    where: { id: dto.serviceId }
+                });
+                if (!serviceExists) {
+                    throw new NotFoundException('Service not found');
+                }
+            }
+
+            const array: number[] = [];   
+            if (dto.score1) {
+                array.push(dto.score1);
+            }
+            if (dto.score2) {
+                array.push(dto.score2);
+            }
+            if (dto.score3) {
+                array.push(dto.score3);
+            }
+            if (dto.score4) {
+                array.push(dto.score4);
+            }
+            if (dto.score5) {
+                array.push(dto.score5);
+            }
+            if (dto.score6) {
+                array.push(dto.score6);
+            }
+            const overallScore = array.length > 0 
+                ? array.reduce((a, b) => a + b, 0) / array.length 
+                : 0;
+            
             const review = await this.prisma.review.create({
                 data: {
                     id: randomAlphanumeric(12),
                     placeId: null,
-                    serviceId: dto.serviceId,
+                    serviceId: dto.serviceId || null,
                     userId: dto.userId,
                     comment: dto.comment,
                     score1: dto.score1,
@@ -43,6 +77,7 @@ export class ReviewService {
                     score5: dto.score5,
                     score6: dto.score6,
                     status: dto.status,
+                    rating: overallScore
                 }
             });
 

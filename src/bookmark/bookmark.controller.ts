@@ -1,15 +1,16 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { BookmarkService } from './bookmark.service';
-import { CreateBookmarkDto } from './dto/create-bookmark.dto';
+import { CreateBookmarkDto ,exampleBookmark} from './dto/create-bookmark.dto';
 import { UpdateBookmarkDto } from './dto/update-bookmark.dto';
-import { ApiBody } from '@nestjs/swagger';
+import { ApiBody, ApiProperty } from '@nestjs/swagger';
 
 @Controller('bookmark')
 export class BookmarkController {
   constructor(private readonly bookmarkService: BookmarkService) {}
 
   @Post()
-  @ApiBody({ type: CreateBookmarkDto }) // สำคัญมาก!
+  @ApiBody({ type: CreateBookmarkDto , examples: exampleBookmark }) 
+
   create(@Body() createBookmarkDto: CreateBookmarkDto) {
     console.log(createBookmarkDto.status);
     return this.bookmarkService.create(createBookmarkDto);
