@@ -26,6 +26,7 @@ export class HotelController {
   }
 
   @Get(':id')
+  @UseGuards(JwtToken)
   findOne(@Param('id') id: string, @Req() req: any) {
     return this.hotelService.findOne(id, req);
   }
