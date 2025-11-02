@@ -45,7 +45,6 @@ export class GuideService {
         nearbyLocations: dto.nearbyLocations ?? undefined,
         pictures: dto.pictures ?? undefined,
 
-        contact: dto.contact ?? undefined,
 
         // 👇 แปลงเป็น plain JSON ก่อน
         contacts: this.toJson(dto.contacts),
@@ -82,8 +81,6 @@ export class GuideService {
         regionsCovered: dto.regionsCovered ?? undefined,
         nearbyLocations: dto.nearbyLocations ?? undefined,
         pictures: dto.pictures ?? undefined,
-
-        contact: dto.contact ?? undefined,
 
         contacts: dto.contacts === null ? Prisma.JsonNull : this.toJson(dto.contacts),
         availability: dto.availability === null ? Prisma.JsonNull : this.toJson(dto.availability),
