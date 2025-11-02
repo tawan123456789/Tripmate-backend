@@ -162,4 +162,34 @@ export class ReviewService {
         return reviews;
     }
 
+
+    update(id: string, updateReviewDto: UpdateReviewDto) {
+        const ratingScores: number[] = [];
+        if (updateReviewDto.score1 !== undefined) ratingScores.push(updateReviewDto.score1);
+        if (updateReviewDto.score2 !== undefined) ratingScores.push(updateReviewDto.score2);
+        if (updateReviewDto.score3 !== undefined) ratingScores.push(updateReviewDto.score3);
+        if (updateReviewDto.score4 !== undefined) ratingScores.push(updateReviewDto.score4);
+        if (updateReviewDto.score5 !== undefined) ratingScores.push(updateReviewDto.score5);
+        if (updateReviewDto.score6 !== undefined) ratingScores.push(updateReviewDto.score6);
+
+        let averageRating = 0;
+        if (ratingScores.length > 0) {
+            const total = ratingScores.reduce((sum, score) => sum + score, 0);
+            averageRating = total / ratingScores.length;
+        }
+        const updatedReview = this.prisma.review.update({
+            where: { id },
+            data: {
+                comment: updateReviewDto.comment,
+                score1: updateReviewDto.score1,
+                score2: updateReviewDto.score2,
+                score3: updateReviewDto.score3,
+                score4: updateReviewDto.score4,
+                score5: updateReviewDto.score5,
+                score6: updateReviewDto.score6,
+                rating: averageRating,
+            },
+        });
+        return updatedReview;
+    }
 }

@@ -670,4 +670,166 @@ export class UsersService {
       }).filter(item => item !== null);
     }
   }
+
+  async findReviews(userId: string, type: string) {
+    if (type == 'place') {
+      const reviews = await this.prisma.review.findMany({
+        where: {
+          userId: userId,
+          placeId: { not: null },
+        },
+        include: {
+          place: {
+            include: {
+              location: true,
+            },
+          },
+        },
+      });
+
+      // Map to shape similar to findBookmarks but include review data
+      return reviews.map((r) => {
+        const place = r.place;
+        if (!place) return null;
+        return {
+          id: place.id,
+          name: place.name,
+          type: 'place',
+          pictures: r.image && r.image.length ? r.image : (place.placeImg || []),
+          rating: r.rating ?? null,
+          comment: r.comment ?? null,
+          createdAt: r.createdAt,
+          location: place.location?.name || '',
+        };
+      }).filter((i) => i !== null);
+    }
+
+    // service based reviews: hotel, restaurant, car_rental_center, guide
+    else if (type == 'hotel' || type == 'restaurant' || type == 'car_rental_center' || type == 'guide') {
+      let serviceType: string;
+      if (type == 'hotel') serviceType = 'hotel';
+      else if (type == 'restaurant') serviceType = 'restaurant';
+      else if (type == 'car_rental_center') serviceType = 'car_rental_center';
+      else if (type == 'guide') serviceType = 'guide';
+      else throw new NotFoundException('Invalid service type');
+
+      const reviews = await this.prisma.review.findMany({
+        where: {
+          userId: userId,
+          service: {
+            is: { type: serviceType },
+          },
+        },
+        include: {
+          service: {
+            include: {
+              location: true,
+              owner: {
+                select: {
+                  id: true,
+                  fname: true,
+                  lname: true,
+                  profileImg: true,
+                },
+              },
+              hotel: type == 'hotel',
+              restaurant: type == 'restaurant',
+              carRentalCenter: type == 'car_rental_center' ? { include: { cars: true } } : false,
+              guide: type == 'guide',
+            },
+          },
+        },
+      });
+
+  // Debug log: show raw reviews so we can verify Prisma returned rows
+  console.log('[findReviews] raw reviews count:', reviews.length);
+  // Log a small sample (not entire object) to avoid huge logs
+  console.log('[findReviews] sample:', reviews.slice(0, 3).map(r => ({ id: r.id, serviceId: r.serviceId, placeId: r.placeId, rating: r.rating })));
+
+      return reviews.map((r) => {
+        const service = r.service;
+        if (!service) return null;
+
+        const baseData = {
+          rating: r.rating ?? null,
+          comment: r.comment ?? null,
+          createdAt: r.createdAt,
+          location: service.location?.name || '',
+        };
+
+        if (service.hotel && service.hotel) {
+          const hotel = service.hotel;
+          return {
+            name: hotel.name,
+            star: hotel.star || 0,
+            ...baseData,
+            pictures: r.image && r.image.length ? r.image : (hotel.pictures || []),
+            hotel_id: hotel.id,
+          };
+        }
+
+        if (service.restaurant && service.restaurant) {
+          const restaurant = service.restaurant;
+          return {
+            name: restaurant.name,
+            ...baseData,
+            pictures: r.image && r.image.length ? r.image : (restaurant.pictures || []),
+            restaurant_id: restaurant.id,
+          };
+        }
+
+        if (service.carRentalCenter && service.carRentalCenter) {
+          const crc = service.carRentalCenter as any;
+          const firstCar = crc.cars?.[0];
+          const carPictures = (r.image && r.image.length)
+            ? r.image
+            : (firstCar?.pictures && firstCar.pictures.length)
+              ? firstCar.pictures
+              : (crc.pictures && crc.pictures.length)
+                ? crc.pictures
+                : (crc.image ? [crc.image] : []);
+          return {
+            name: crc.name,
+            owner: {
+              owner_id: service.owner.id,
+              profile_pic: service.owner.profileImg || undefined,
+              first_name: service.owner.fname,
+              last_name: service.owner.lname,
+            },
+            ...baseData,
+            price: firstCar ? Number(firstCar.pricePerDay || 0) : 0,
+            type: firstCar?.type || 'car',
+            pictures: carPictures,
+            rental_car_id: crc.id,
+          };
+        }
+
+        if (service.guide && service.guide) {
+          const guide = service.guide;
+          const guidePictures = (r.image && r.image.length) ? r.image : ((guide.pictures && guide.pictures.length) ? guide.pictures : (guide.image ? [guide.image] : []));
+          return {
+            name: guide.name,
+            guider: {
+              user_id: service.owner.id,
+              profile_pic: service.owner.profileImg || undefined,
+              first_name: service.owner.fname,
+              last_name: service.owner.lname,
+            },
+            duration: `${guide.experienceYears || 0} years`,
+            ...baseData,
+            price: guide.dayRate ? Number(guide.dayRate) : 0,
+            type: 'guide',
+            pictures: guidePictures,
+            id: guide.id,
+          };
+        }
+
+        return null;
+      }).filter((i) => i !== null);
+    }
+
+    // default: return empty array for unsupported types
+    return [];
+}
+
 }
