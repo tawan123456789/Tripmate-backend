@@ -20,6 +20,7 @@ export class BookmarkService {
                                     
                                             tripId: dto.serviceId,
                                             serviceId:null,
+                                            placeId:null,
                                             userId: dto.userId,
                                             status: dto.status,
                                         },
@@ -28,7 +29,18 @@ export class BookmarkService {
                                 return await this.prisma.bookmark.create({
                                         data: {
                                             tripId:null,
+                                            placeId:null,
                                             serviceId: dto.serviceId,
+                                            userId: dto.userId,
+                                            status: dto.status,
+                                        },
+                                });
+            }
+            else if(dto.status == "place"){
+                                return await this.prisma.bookmark.create({
+                                        data: {
+                                            tripId:null,
+                                            serviceId: null,
                                             userId: dto.userId,
                                             status: dto.status,
                                         },

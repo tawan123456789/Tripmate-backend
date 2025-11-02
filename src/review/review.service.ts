@@ -113,4 +113,18 @@ export class ReviewService {
     });
     return updateReview;
 }
+
+    async getReviewHistory(
+        userId: string,
+        serviceTypeOrLocation: string,
+    ) {
+        const reviews = await this.prisma.review.findMany({
+            where: {
+                userId: userId,
+                status: serviceTypeOrLocation
+            }
+        });
+        return reviews;
+    }
+
 }
