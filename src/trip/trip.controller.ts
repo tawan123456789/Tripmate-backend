@@ -76,6 +76,7 @@ export class TripController {
 
 
   @Post('search')
+  @ApiOperation({ summary: 'Search trip plans by name' })
   async search(@Query('text') text: string) {
     return this.tripService.search(text);
   }
