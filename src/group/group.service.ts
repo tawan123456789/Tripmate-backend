@@ -112,7 +112,13 @@ export class GroupService {
     }
 
     findAll() {
-        return this.prisma.group.findMany();
+        return this.prisma.group.findMany(
+            {
+                include: {
+                 members: true,   
+                }
+            }
+        );
     }
 
     async searchGroup(text: string) {
