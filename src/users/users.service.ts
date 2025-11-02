@@ -622,6 +622,12 @@ export class UsersService {
         if (service.carRentalCenter) {
           const crc = service.carRentalCenter as any; // Type assertion เพราะ conditional include
           const firstCar = crc.cars?.[0];
+          // Prefer car pictures, then crc.pictures array, then crc.image single string
+          const carPictures = (firstCar?.pictures && firstCar.pictures.length)
+            ? firstCar.pictures
+            : (crc.pictures && crc.pictures.length)
+              ? crc.pictures
+              : (crc.image ? [crc.image] : []);
           return {
             name: crc.name,
             owner: {
@@ -633,7 +639,7 @@ export class UsersService {
             ...baseData,
             price: firstCar ? Number(firstCar.pricePerDay || 0) : 0,
             type: firstCar?.type || 'car',
-            pictures: firstCar?.pictures || [],
+            pictures: carPictures,
             rental_car_id: crc.id,
           };
         }
@@ -641,6 +647,8 @@ export class UsersService {
         // Guide
         if (service.guide) {
           const guide = service.guide;
+          // Use pictures array if present, otherwise fallback to single `image` field from DB
+          const guidePictures = (guide.pictures && guide.pictures.length) ? guide.pictures : (guide.image ? [guide.image] : []);
           return {
             name: guide.name,
             guider: {
@@ -653,7 +661,7 @@ export class UsersService {
             ...baseData,
             price: guide.dayRate ? Number(guide.dayRate) : 0,
             type: 'guide',
-            pictures: guide.pictures || [],
+            pictures: guidePictures,
             id: guide.id,
           };
         }
