@@ -31,3 +31,45 @@ export class JwtAuthGuard implements CanActivate {
     }
   }
 }
+
+
+
+@Injectable()
+export class JwtToken implements CanActivate {
+  canActivate(context: ExecutionContext) {
+    const req: Request & { user?: any } = context.switchToHttp().getRequest();
+
+    // If middleware already set req.user, accept
+    if (req.user) return true;
+
+    let authHeader = (req.headers['authorization'] || req.headers['Authorization']) as string | undefined;
+    if (!authHeader) {
+      authHeader = "";
+          req.user = {
+        id: null,
+        email: null,
+        role: null,
+        _raw: null,
+      };
+      return true;
+    }
+
+    let token = authHeader.split(' ')[1];
+    if (!token) token = "";
+
+    try {
+      const payload = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+     
+      // normalize
+      req.user = {
+        id: payload.sub ?? payload.id,
+        email: payload.username ?? payload.email,
+        role: payload.userRole ?? payload.role,
+        _raw: payload,
+      };
+      return true;
+    } catch (err) {
+      throw new UnauthorizedException(err);
+    }
+  }
+}

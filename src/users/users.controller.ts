@@ -4,7 +4,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto,ChangePasswordDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard, JwtToken } from '../auth/guards/jwt-auth.guard';
 import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 @Controller('users')
 export class UsersController {
@@ -25,10 +25,10 @@ export class UsersController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtToken)
   @ApiBearerAuth('bearerAuth')
   findOne(@Param('id') id: string, @Req() req: any) {
-
+    console.log("Request User:", req.user?.id);
     return this.usersService.findOne(id, req);
   }
 

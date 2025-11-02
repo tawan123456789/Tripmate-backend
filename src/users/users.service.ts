@@ -116,7 +116,10 @@ export class UsersService {
       });
 
       // mark favorite: always include boolean `favorite`; only query bookmarks if viewer exists and trips present
-      const viewerId = req.user?.id;
+        let viewerId = req.user?.id;
+        if (!viewerId) {
+          viewerId = "00000000-0000-0000-0000-000000000000";
+        }
       // default: all not favorite
       let tripsWithFavorite = trip.map((t) => ({ ...t, favorite: false }));
       if (viewerId && trip.length) {
@@ -180,7 +183,10 @@ export class UsersService {
       let serviceWithFavorite = service.map((s) => ({ ...s, favorite: false }));
       if (serviceWithFavorite.length) {
         const serviceIds = service.map((s) => s.id);
-        const viewerId = req.user?.id;
+        let viewerId = req.user?.id;
+        if (!viewerId) {
+          viewerId = "00000000-0000-0000-0000-000000000000";
+        }
         const bookmarks = await this.prisma.bookmark.findMany({
           where: {
             userId: viewerId,
@@ -236,7 +242,10 @@ export class UsersService {
       let serviceWithFavorite = service.map((s) => ({ ...s, favorite: false }));
       if (serviceWithFavorite.length) {
         const serviceIds = service.map((s) => s.id);
-        const viewerId = req.user?.id;
+        let viewerId = req.user?.id;
+        if (!viewerId) {
+          viewerId = "00000000-0000-0000-0000-000000000000";
+        }
         const bookmarks = await this.prisma.bookmark.findMany({
           where: {
             userId: viewerId,
@@ -293,7 +302,10 @@ export class UsersService {
       let serviceWithFavorite = service.map((s) => ({ ...s, favorite: false }));
       if (serviceWithFavorite.length) {
         const serviceIds = service.map((s) => s.id);
-        const viewerId = req.user?.id;
+        let viewerId = req.user?.id;
+        if (!viewerId) {
+          viewerId = "00000000-0000-0000-0000-000000000000";
+        }
         const bookmarks = await this.prisma.bookmark.findMany({
           where: {
             userId: viewerId,
@@ -349,7 +361,10 @@ export class UsersService {
       let serviceWithFavorite = service.map((s) => ({ ...s, favorite: false }));
       if (serviceWithFavorite.length) {
         const serviceIds = service.map((s) => s.id);
-        const viewerId = req.user?.id;
+        let viewerId = req.user?.id;
+        if (!viewerId) {
+          viewerId = "00000000-0000-0000-0000-000000000000";
+        }
         const bookmarks = await this.prisma.bookmark.findMany({
           where: {
             userId: viewerId,
