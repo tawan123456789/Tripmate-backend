@@ -136,6 +136,7 @@ private servicePrice = async (
           serviceId: dto.serviceId,
           groupId: dto.groupId,
           subServiceId: dto.subServiceId,
+          optionId: dto.optionId,
           startBookingDate: dto.startBookingDate,
           endBookingDate: dto.endBookingDate,
           note: dto.note,
@@ -273,5 +274,15 @@ async ConfirmBooking(id: string) {
     };
   });
 }
+
+  findAll() {
+    return this.prisma.booking.findMany({include : {}});
+  }
+
+  async findOne(id: string) {
+      const location = await this.prisma.car.findUnique({ where: { id } });
+          if (!location) throw new NotFoundException('Service not found');
+          return location;
+    }
 
 }
