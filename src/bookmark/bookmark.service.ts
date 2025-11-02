@@ -10,86 +10,87 @@ import { randomAlphanumeric } from 'src/utils/random.util';
 
 @Injectable()
 export class BookmarkService {
-  constructor(private prisma: PrismaService) {}
-        
-        async create(dto: CreateBookmarkDto) {
-            try { 
-                if(dto.status == "trip"){
-                                return await this.prisma.bookmark.create({
-                                        data: {
-                                    
-                                            tripId: dto.serviceId,
-                                            serviceId:null,
-                                            placeId:null,
-                                            userId: dto.userId,
-                                            status: dto.status,
-                                        },
-                                });
-            } else if(dto.status == "service"){
-                                return await this.prisma.bookmark.create({
-                                        data: {
-                                            tripId:null,
-                                            placeId:null,
-                                            serviceId: dto.serviceId,
-                                            userId: dto.userId,
-                                            status: dto.status,
-                                        },
-                                });
+    constructor(private prisma: PrismaService) { }
+
+    async create(dto: CreateBookmarkDto) {
+        try {
+            if (dto.status == "trip") {
+                return await this.prisma.bookmark.create({
+                    data: {
+
+                        tripId: dto.serviceId,
+                        serviceId: null,
+                        placeId: null,
+                        userId: dto.userId,
+                        status: dto.status,
+                    },
+                });
+            } else if (dto.status == "service") {
+                return await this.prisma.bookmark.create({
+                    data: {
+                        tripId: null,
+                        placeId: null,
+                        serviceId: dto.serviceId,
+                        userId: dto.userId,
+                        status: dto.status,
+                    },
+                });
             }
-            else if(dto.status == "place"){
-                                return await this.prisma.bookmark.create({
-                                        data: {
-                                            tripId:null,
-                                            serviceId: null,
-                                            userId: dto.userId,
-                                            status: dto.status,
-                                        },
-                                });
+            else if (dto.status == "place") {
+                return await this.prisma.bookmark.create({
+                    data: {
+                        tripId: null,
+                        serviceId: null,
+                        placeId: dto.serviceId,
+                        userId: dto.userId,
+                        status: dto.status,
+                    },
+                });
             }
 
-            } catch (e) {
-                if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
-                    throw new ConflictException('bookmark ID ถูกใช้งานแล้ว');
-                }
-                    }
+        } catch (e) {
+            if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+                throw new ConflictException('bookmark ID ถูกใช้งานแล้ว');
+            }
         }
-
-
-
-  findAll() {
-    return `This action returns all bookmark`;
-  }
-
-  async findOne(id: string) {
-      const location = await this.prisma.bookmark.findUnique({ where: { id } });
-          if (!location) throw new NotFoundException('Bookmark not found');
-          return location;
     }
-  
+
+
+
+    findAll() {
+        return `This action returns all bookmark`;
+    }
+
+    async findOne(id: string) {
+        const location = await this.prisma.bookmark.findUnique({ where: { id } });
+        if (!location) throw new NotFoundException('Bookmark not found');
+        return location;
+    }
+
     async update(id: string, dto: UpdateBookmarkDto) {
-      const existing = await this.prisma.bookmark.findUnique({ where: { id } });
-          if (!existing) {
-              throw new NotFoundException('Location not found');
-          }
-          return this.prisma.bookmark.update({
-              where: { id },
-              data: {
+        const existing = await this.prisma.bookmark.findUnique({ where: { id } });
+        if (!existing) {
+            throw new NotFoundException('Location not found');
+        }
+        return this.prisma.bookmark.update({
+            where: { id },
+            data: {
                 serviceId: dto.serviceId,
                 userId: dto.userId,
                 status: dto.status,
             },
-          });
+        });
     }
-  
+
     async remove(id: string) {
-      try {
-          await this.prisma.bookmark.delete({ where: { id } });
-          return { ok: true };
-      } catch (e) {
-          if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
-              throw new NotFoundException('restaurant not found');
-          }
-          throw e;
-      }
+        try {
+            await this.prisma.bookmark.delete({ where: { id } });
+            return { ok: true };
+        } catch (e) {
+            if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
+                throw new NotFoundException('restaurant not found');
+            }
+            throw e;
+        }
     }
 }
