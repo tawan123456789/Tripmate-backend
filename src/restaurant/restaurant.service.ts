@@ -32,11 +32,11 @@ constructor(private prisma: PrismaService) {}
       }
 
   findAll(req: any) {
-    return this.prisma.restaurant.findMany({include: { service: { include: { reviews: true, location: true, bookmarks: {where : { userId: req.query.userId } } } } }});
+    return this.prisma.restaurant.findMany({include: { service: { include: { reviews: true, location: true, bookmarks: {where : { userId: req.user.id} } } } }});
   }
 
 async findOne(id: string, req: any) {
-      const location = await this.prisma.restaurant.findUnique({ where: { id }, include: { service: { include: { reviews: true, location: true, bookmarks: {where : { userId: req.query.userId } } } } } });
+      const location = await this.prisma.restaurant.findUnique({ where: { id }, include: { service: { include: { reviews: true, location: true, bookmarks: {where : { userId: req.user.id } } } } } });
           if (!location) throw new NotFoundException('Location not found');
           return location;
     }

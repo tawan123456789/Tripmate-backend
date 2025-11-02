@@ -110,7 +110,6 @@ const buildInclude = (req: any) => {
   const wantsPriceSort = q.sortBy === 'price';
   const sortOrder: 'asc' | 'desc' = (q.sortOrder as any) || 'asc';
 
-  // ✅ sort ตามราคาต่ำสุดของห้อง (RoomOption.price)
   if (wantsPriceSort) {
     const idList = await this.prisma.hotel.findMany({ where, select: { id: true } });
     const hotelIds = idList.map(h => h.id);

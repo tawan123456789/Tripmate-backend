@@ -3,11 +3,12 @@ import { HotelService } from './hotel.service';
 import { CreateHotelDto } from './dto/create-hotel.dto';
 import { UpdateHotelDto } from './dto/update-hotel.dto';
 import { CreateRoomDto } from 'src/room/dto/create-room.dto';
-import { UseInterceptors } from '@nestjs/common/decorators';
+import { UseGuards, UseInterceptors } from '@nestjs/common/decorators';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { UploadedFiles } from '@nestjs/common/decorators';
 import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { Req } from '@nestjs/common/decorators';
+import { JwtAuthGuard, JwtToken } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('hotel')
 export class HotelController {
@@ -19,6 +20,7 @@ export class HotelController {
   }
 
   @Get()
+  @UseGuards(JwtToken)
   findAll(@Req() req: any) {
     return this.hotelService.findAll(req);
   }
