@@ -63,7 +63,7 @@ export class PlaceService {
     }
   }
   findAll() {
-    return this.prisma.place.findMany();
+    return this.prisma.place.findMany({});
   }
 
   findOne(id: string) {
