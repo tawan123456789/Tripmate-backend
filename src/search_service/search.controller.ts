@@ -11,23 +11,23 @@ export class SearchController {
     return this.searchService.searchHotels(q,req);
   }
 
-  // @Get('restaurants')
-  // searchRestaurants(@Query() q: SearchQueryDto) {
-  //   return this.searchService.searchRestaurants(q);
-  // }
+  @Get('restaurants')
+  searchRestaurants(@Query() q: SearchQueryDto,@Req() req: any) {
+    return this.searchService.searchRestaurants(q,req);
+  }
 
-  // @Get('attractions')
-  // searchAttractions(@Query() q: SearchQueryDto) {
-  //   return this.searchService.searchAttractions(q);
-  // }
+  @Get('attractions')
+  searchAttractions(@Query() q: SearchQueryDto,@Req() req: any) {
+    return this.searchService.searchAttractions(q,req);
+  }
 
-  // @Get('rentals')
-  // searchRentals(@Query() q: SearchQueryDto) {
-  //   return this.searchService.searchRentals(q);
-  // }
+  @Get('rentals')
+  searchRentals(@Query() q: SearchQueryDto,@Req() req: any) {
+    return this.searchService.searchRentals(q,req);
+  }
 
-  // @Get('guides')
-  // searchGuides(@Query() q: SearchQueryDto) {
-  //   return this.searchService.searchGuides(q);
-  // }
+  @Get('guides')
+  searchGuides(@Query() q: SearchQueryDto,@Req() req: any) {
+    return this.searchService.searchGuides(q,req);
+  }
 }

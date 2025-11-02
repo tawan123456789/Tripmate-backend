@@ -324,7 +324,6 @@ async createHotelService(
             overtimeRate: payload.overtimeRate as any,
             currency: payload.currency,
 
-            contact: payload.contact,
             contacts: payload.contacts as any,
 
             availability: payload.availability as any,    // JSON แบบยืดหยุ่น
