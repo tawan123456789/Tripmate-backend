@@ -525,6 +525,7 @@ model Booking {
   serviceId        String      @map("service_id")
   subServiceId     String?     @map("sub_service_id")
   optionId         String?     @map("option_id")
+  
   groupId          String      @map("group_id")
   startBookingDate DateTime    @map("start_booking_date")
   endBookingDate   DateTime?   @map("end_booking_date")
