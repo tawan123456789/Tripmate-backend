@@ -63,11 +63,11 @@ export class PlaceService {
     }
   }
   findAll() {
-    return this.prisma.place.findMany({});
+    const result =  this.prisma.place.findMany({include : {location:true,reviews:true}});
   }
 
   findOne(id: string) {
-    return this.prisma.place.findUnique({ where: { id } });
+    return this.prisma.place.findUnique({ where: { id } , include : {location:true,reviews:true}});
   }
 
   update(id: string, updatePlaceDto: UpdatePlaceDto) {

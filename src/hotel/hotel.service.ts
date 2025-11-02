@@ -90,6 +90,7 @@ export class HotelService {
     return this.prisma.hotel.update({
       where: { id },
       data: {
+        // primitives
         name: dto.name ?? undefined,
         type: dto.type ?? undefined,
         star: dto.star ?? undefined,
@@ -126,6 +127,7 @@ export class HotelService {
     }
   }
     
+
   async findOne(id: string, req: any) {
     const location = await this.prisma.hotel.findUnique({ where: { id }, include: { rooms: { include: { options: true } }, service: { include: { reviews: true ,location: true, bookmarks: {where : { userId: req.query.userId } } } } } });
         if (!location) throw new NotFoundException('Hotel not found');

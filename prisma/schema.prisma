@@ -201,6 +201,7 @@ model Place {
   location    Location?  @relation(fields: [locationId], references: [id])
   tripUnits   TripUnit[]
   reviews     Review[]
+  bookmark    Bookmark[]
 
   @@index([locationId])
   @@map("Place")
@@ -485,6 +486,7 @@ model Review {
   score4     Int?
   score5     Int?
   score6     Int?
+  rating     Int?
   createdAt DateTime    @default(now()) @map("created_at")
   updatedAt DateTime?   @updatedAt @map("updated_at")
   status    String?
@@ -502,6 +504,7 @@ model Bookmark {
   id        String      @id @default(uuid()) @map("bookmark_id")
   serviceId String?      @map("service_id")
   tripId    String?     @map("trip_id")
+  placeId   String      @map("place_id")
   userId    String      @map("user_id") @db.Uuid
   createdAt DateTime    @default(now()) @map("created_at")
   updatedAt DateTime?   @updatedAt @map("updated_at")
@@ -509,9 +512,11 @@ model Bookmark {
   trip      TripPlan?   @relation(fields: [tripId], references: [id])
   service   UserService? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  place     Place       @relation(fields: [placeId],references: [id], onDelete: Cascade)
 
   @@index([serviceId])
   @@index([userId])
+  @@index([placeId])
   @@map("Bookmark")
 }
 
