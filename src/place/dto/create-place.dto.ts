@@ -1,59 +1,73 @@
-// src/place/dto/create-place.dto.ts
-import {
-  IsString,
-  IsOptional,
-  IsBoolean,
-  IsDate,
-  IsUUID,
-} from 'class-validator';
 import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsLongitude,
+  IsLatitude,
+  ValidateNested,
+} from 'class-validator';
 
 export class CreatePlaceDto {
-  /** 🆔 รหัสสถานที่ (ใช้ place_id ใน DB) */
-  @IsString()
-  id!: string;
-
-  /** 📍 รหัส location (อ้างอิง Location.location_id) */
+  /** 🆔 รหัสสถานที่ (ไม่จำเป็นต้องส่ง — สร้างอัตโนมัติ) */
   @IsOptional()
-  @IsString()
-  locationId?: string;
+  @IsUUID()
+  id?: string;
 
-  /** 🏷️ ชื่อสถานที่ */
+
+  /** 🏠 ชื่อสถานที่ */
   @IsString()
   name!: string;
 
-  /** 📝 รายละเอียดเพิ่มเติม */
+  /** 🏷️ ประเภทของสถานที่ เช่น "temple", "museum", "market" */
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  /** 📝 คำอธิบายเพิ่มเติม */
   @IsOptional()
   @IsString()
   description?: string;
 
+  /** 🖼️ รูปภาพสถานที่ (URL หรือ Path) */
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  placeImg?: string[];
 
-  /** 🔖 สถานะ (active/inactive ฯลฯ) */
+  /** 🗺️ โซน เช่น "north", "south", "east", "west" */
+  @IsOptional()
+  @IsString()
+  zone?: string;
+
+  /** 🕒 วันที่สร้าง (ระบบจะ gen อัตโนมัติ) */
+  @IsOptional()
+  @IsDateString()
+  createdAt?: string;
+
+  /** 🕒 วันที่อัปเดตล่าสุด (ระบบจะ gen อัตโนมัติ) */
+  @IsOptional()
+  @IsDateString()
+  updatedAt?: string;
+
+  /** 🕒 วันที่ลบ (soft delete) */
+  @IsOptional()
+  @IsDateString()
+  deletedAt?: string;
+
+  /** 🎡 เป็นสถานที่ท่องเที่ยวหรือไม่ */
+  @IsOptional()
+  @IsBoolean()
+  isAttraction?: boolean;
+
+  /** 🚦 สถานะ เช่น "active", "inactive" */
   @IsOptional()
   @IsString()
   status?: string;
 
-  /** 🕒 วันสร้าง (optional เพราะ DB มี default = now()) */
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  createdAt?: Date;
-
-  /** 🕓 วันอัปเดตล่าสุด (optional เพราะมี @updatedAt) */
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  updatedAt?: Date;
-
-  /** 🗑️ วันลบ (soft delete) */
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  deletedAt?: Date;
-
-  /** 🏞️ ระบุว่าเป็นสถานที่ท่องเที่ยวหรือไม่ */
-  @IsOptional()
-  @IsBoolean()
-  @Type(() => Boolean)
-  isAttraction?: boolean;
+    @IsLatitude() lat: string;
+    @IsLongitude() long: string;
 }

@@ -18,32 +18,34 @@ export class PlaceService {
 
   async create(createPlaceDto: CreatePlaceDto) {
     try {
- 
-      if (createPlaceDto.locationId) {
-        const locationExists = await this.prisma.location.findUnique({
-          where: { id: createPlaceDto.locationId },
-          select: { id: true },
-        });
 
-        if (!locationExists) {
-          throw new NotFoundException(
-            `Location with ID "${createPlaceDto.locationId}" not found`,
-          );
-        }
-      }
+      const location = await this.prisma.location.create({
+                data: {
+                  
+                    lat: parseFloat(createPlaceDto.lat),
+                    long: parseFloat(createPlaceDto.long),
+                    name: createPlaceDto.name,
+
+                },
+            });
 
       // 🔹 สร้าง Place ใหม่
       const place = await this.prisma.place.create({
         data: {
           id: createPlaceDto.id,
           name: createPlaceDto.name,
-          description: createPlaceDto.description,
-          status: createPlaceDto.status ?? 'active',
+          type: createPlaceDto.type ?? null,
+          description: createPlaceDto.description ?? null,
+          placeImg: createPlaceDto.placeImg ?? [],
+          zone: createPlaceDto.zone ?? null,
           isAttraction: createPlaceDto.isAttraction ?? false,
-          createdAt: createPlaceDto.createdAt, // ถ้าไม่ส่ง Prisma จะใส่ default(now())
-          locationId: createPlaceDto.locationId ?? undefined,
+          status: createPlaceDto.status ?? 'active',
+          locationId: location.id,
+          createdAt: createPlaceDto.createdAt ? new Date(createPlaceDto.createdAt) : undefined,
+          updatedAt: createPlaceDto.updatedAt ? new Date(createPlaceDto.updatedAt) : undefined,
+          deletedAt: createPlaceDto.deletedAt ? new Date(createPlaceDto.deletedAt) : undefined,
         },
-      });
+      })
 
       return {
         message: 'Place created successfully',
