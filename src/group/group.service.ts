@@ -197,6 +197,10 @@ export class GroupService {
         }
     }
 
+    async getBooking(id: string){
+        return  this.prisma.booking.findMany({ where: { groupId : id } });
+    }
+
     async groupDetails(id: string) {
         const group = await this.prisma.group.findUnique({
             where: { id },

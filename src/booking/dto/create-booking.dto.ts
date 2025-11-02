@@ -47,9 +47,6 @@ function IsAfter(property: string, validationOptions?: ValidationOptions) {
 
 export class CreateBookingDto {
   // หมายเหตุ: ถ้า id ให้ DB/Prisma gen เอง ให้เอาออกหรือทำ @IsOptional()
-  @IsOptional()
-  @IsString()
-  id?: string;
 
   // หากใช้ UUID จริง ให้เปลี่ยนเป็น @IsUUID()
   @IsString()
