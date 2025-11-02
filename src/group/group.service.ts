@@ -115,7 +115,20 @@ export class GroupService {
         return this.prisma.group.findMany(
             {
                 include: {
-                 members: true,   
+                 members: {
+                    select: {
+                        groupId: true,
+                        userId: true,
+                        status: true,
+                        joinDate: true,
+                        user: {
+                            select: {
+                                username: true,
+                                profileImg: true,
+                            },
+                        },
+                    },
+                 },   
                 }
             }
         );
