@@ -82,5 +82,9 @@ export class UsersController {
       return this.usersService.uploadUserImages(userId, profileImg);
     }
 
+  @Get('bookmark/:userId/:type')
+  findBookmarks(@Param('userId') userId: string, @Param('type') type: string) {
+    return this.usersService.findBookmarks(userId, type);
+  }
 
 }
