@@ -90,13 +90,17 @@ export class GuideService {
   }
 
   findAll(req: any) {
-    return this.prisma.guide.findMany({include: { service: { include: { reviews: true, location: true, bookmarks: {where : { userId: req.query.userId } } } } }});
+    if(req.user.id){return this.prisma.guide.findMany({include: { service: { include: { reviews: true, location: true, bookmarks: {where : { userId: req.query.userId } } } } }});}
+    return this.prisma.guide.findMany({include: { service: { include: { reviews: true, location: true } } }});
   }
 
   async findOne(id: string, req: any) {
-    const location = await this.prisma.guide.findUnique({ where: { id }, include: { service: { include: { reviews: true, location: true, bookmarks: {where : { userId: req.query.userId } } } } } });
+    if(req.user.id){const location = await this.prisma.guide.findUnique({ where: { id }, include: { service: { include: { reviews: true, location: true, bookmarks: {where : { userId: req.query.userId } } } } } });
         if (!location) throw new NotFoundException('Guide not found');
-        return location;
+        return location;}
+    else{const location = await this.prisma.guide.findUnique({ where: { id }, include: { service: { include: { reviews: true, location: true, bookmarks: {where : { userId: req.query.userId } } } } } });
+        if (!location) throw new NotFoundException('Guide not found');
+        return location;}
   }
 
   async remove(id: string) {

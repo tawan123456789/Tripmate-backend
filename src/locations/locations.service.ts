@@ -84,8 +84,9 @@ export class LocationsService {
   const cosLat = Math.cos(lat * Math.PI / 180);
   const safeCos = Math.max(0.000001, Math.abs(cosLat));
   const lngDelta = radiusKm / (111.32 * safeCos);
-
-  return this.prisma.$queryRaw<
+  console.log('✅ about to query...');
+  
+  const result = this.prisma.$queryRaw<
     Array<{ location_id: string; name: string; lat: number; long: number; distance_km: number; }>
   >`
     SELECT 
@@ -115,5 +116,7 @@ export class LocationsService {
     ORDER BY distance_km ASC
     LIMIT ${limit};
   `;
+  console.log('✅ result', result);
+  return result
 }
 }

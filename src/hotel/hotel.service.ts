@@ -122,16 +122,22 @@ export class HotelService {
   
 
   findAll(req: any) {
-    if (req.query.userId) {
-    return this.prisma.hotel.findMany({include: { rooms: { include: { options: true } } , service: { include: { reviews: true ,location: true, bookmarks: {where : { userId: req.query.userId } } } } }});
+    console.log(req.user.id)
+    if (req.user.id) {
+    return this.prisma.hotel.findMany({include: { rooms: { include: { options: true } } , service: { include: { reviews: true ,location: true, bookmarks: {where : { userId: req.user.id} } } } }});
     }
+    return this.prisma.hotel.findMany({include: { rooms: { include: { options: true } } , service: { include: { reviews: true ,location: true} } }});
   }
     
 
   async findOne(id: string, req: any) {
-    const location = await this.prisma.hotel.findUnique({ where: { id }, include: { rooms: { include: { options: true } }, service: { include: { reviews: true ,location: true, bookmarks: {where : { userId: req.query.userId } } } } } });
-        if (!location) throw new NotFoundException('Hotel not found');
-        return location;
+    console.log(req.user.id)
+    if(req.user.id){const location = await this.prisma.hotel.findUnique({ where: { id }, include: { rooms: { include: { options: true } }, service: { include: { reviews: true ,location: true, bookmarks: {where : { userId: req.user.id} } } } } }); if (!location) throw new NotFoundException('Hotel not found');
+        return location;}
+    else{const location = await this.prisma.hotel.findUnique({ where: { id }, include: { rooms: { include: { options: true } }, service: { include: { reviews: true ,location: true} } } }); if (!location) throw new NotFoundException('Hotel not found');
+        return location;}
+    
+      
   }
 
 
