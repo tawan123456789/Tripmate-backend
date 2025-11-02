@@ -39,6 +39,7 @@ export class GroupController {
   }
 
   @Post('/:groupId/join')
+  @ApiBody({ schema: { type: 'object', properties: { userId: { type: 'string' } } } })
   joinGroup(@Body() body: { userId: string}, @Param('groupId') groupId: string) {
     const { userId} = body;
 
