@@ -1,14 +1,16 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNumber, IsString } from "class-validator";
+import { IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateReviewDto {
 
     @ApiPropertyOptional()
     @IsString()
+    @IsOptional()
     serviceId?: string;
 
     @ApiPropertyOptional()
     @IsString()
+    @IsOptional()
     placeId?: string;
 
     @ApiPropertyOptional()
@@ -17,34 +19,42 @@ export class CreateReviewDto {
 
     @ApiPropertyOptional()
     @IsString()
+    @IsOptional()
     comment?: string;
 
     @ApiPropertyOptional()
     @IsNumber()
+    @IsOptional()
     score1?: number;
 
     @ApiPropertyOptional()
     @IsNumber()
+    @IsOptional()
     score2?: number;
 
     @ApiPropertyOptional()
     @IsNumber()
+    @IsOptional()
     score3?: number;
 
     @ApiPropertyOptional()
     @IsNumber()
+    @IsOptional()
     score4?: number;
 
     @ApiPropertyOptional()
     @IsNumber()
+    @IsOptional()
     score5?: number;
 
     @ApiPropertyOptional()
     @IsNumber()
+    @IsOptional()
     score6?: number;
 
     @ApiPropertyOptional()
     @IsString()
+    @IsOptional()
     status?: string;
  
 
