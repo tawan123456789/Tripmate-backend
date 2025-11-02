@@ -34,9 +34,9 @@ export class GroupController {
   }
 
 
-  @Get('/shearch/:text')
-  shearchGroup(@Param('text') text: string) {
-    return this.groupService.shearchGroup(text);
+  @Get('/search/:text')
+  searchGroup(@Param('text') text: string) {
+    return this.groupService.searchGroup(text);
   }
 
 

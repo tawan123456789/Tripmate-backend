@@ -112,10 +112,10 @@ export class GroupService {
     }
 
     findAll() {
-        return `This action returns all group`;
+        return this.prisma.group.findMany();
     }
 
-    async shearchGroup(text: string) {
+    async searchGroup(text: string) {
         const groups = await this.prisma.group.findMany({
             where: {
                 OR: [
