@@ -23,15 +23,15 @@ export class BookingController {
   //   return this.bookingService.create(createBookingDto);
   // }
 
-  // @Get()
-  // findAll() {
-  //   return this.bookingService.findAll();
-  // }
+  @Get()
+  findAll() {
+    return this.bookingService.findAll();
+  }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.bookingService.findOne(+id);
-  // }
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.bookingService.findOne(+id);
+  }
 
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
