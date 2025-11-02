@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { TripService } from './trip.service';
 import { CreateTripDto ,CreateTripPlanDto} from './dto/create-trip.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
@@ -74,5 +74,10 @@ export class TripController {
     return this.tripService.setPrivateTripPlan(id, status);
   }
 
+
+  @Post('search')
+  async search(@Query('text') text: string) {
+    return this.tripService.search(text);
+  }
 
 }

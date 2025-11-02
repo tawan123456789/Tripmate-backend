@@ -167,6 +167,19 @@ export class TripService {
     });
   }
 
+  async search(text: string) {
+    const trips = await this.prisma.tripPlan.findMany({
+      where: {
+        tripName: {
+          contains: text,
+          mode: 'insensitive',
+        },
+        status: 'public',
+      },
+    });
+    return trips;
+  }
+
   async createFromFrontPayload(payload: FrontCreateTripPayloadDto & { ownerId: string }) {
     if (!payload.ownerId) throw new BadRequestException('ownerId is required');
     if (!payload.title) throw new BadRequestException('title is required');
