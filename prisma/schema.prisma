@@ -434,7 +434,7 @@ model Guide {
   rating          Decimal?    @db.Decimal(3, 1)
   pay             Decimal?    @map("pay")
   availability    Json?
-  contact         String?
+
   contacts        Json?
   currency        String?     @default("THB")
   dayRate         Decimal?    @map("day_rate") @db.Decimal(10, 2)
