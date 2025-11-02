@@ -44,9 +44,6 @@ export class GuideService {
         regionsCovered: dto.regionsCovered ?? undefined,
         nearbyLocations: dto.nearbyLocations ?? undefined,
         pictures: dto.pictures ?? undefined,
-
-
-        // 👇 แปลงเป็น plain JSON ก่อน
         contacts: this.toJson(dto.contacts),
         availability: this.toJson(dto.availability),
         policies: this.toJson(dto.policies),
