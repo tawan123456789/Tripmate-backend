@@ -2,10 +2,11 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { GuideService } from './guide.service';
 import { CreateGuideDto } from './dto/create-guide.dto';
 import { UpdateGuideDto } from './dto/update-guide.dto';
-import { Req, UseInterceptors } from '@nestjs/common/decorators';
+import { Req, UseGuards, UseInterceptors } from '@nestjs/common/decorators';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { UploadedFiles } from '@nestjs/common/decorators';
 import { ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { JwtAuthGuard, JwtToken } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('guide')
 export class GuideController {
@@ -17,11 +18,13 @@ export class GuideController {
   }
 
   @Get()
+  @UseGuards(JwtToken)
   findAll(@Req() req: any) {
     return this.guideService.findAll(req);
   }
 
   @Get(':id')
+  @UseGuards(JwtToken)
   findOne(@Param('id') id: string, @Req() req: any) {
     return this.guideService.findOne(id, req);
   }
