@@ -110,6 +110,26 @@ export class GroupService {
             throw e;
         }
     }
+    async getGroupsByUser(membersId: string) {
+        return this.prisma.userJoinGroup.findMany({
+            where: { userId: membersId },
+            include: {
+                group: {
+                    select: {
+                        id: true,
+                        groupName: true,
+                        description: true,
+                        groupImg: true,
+                        owner: {
+                            select: {
+                                username: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    }
 
     findAll() {
         return this.prisma.group.findMany(

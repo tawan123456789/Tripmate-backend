@@ -7,11 +7,13 @@ import { UseInterceptors } from '@nestjs/common/decorators';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes } from '@nestjs/swagger';
 import { UploadedFiles } from '@nestjs/common/decorators';
+import { ApiOperation } from '@nestjs/swagger';
 @Controller('review')
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) { }
 
   @Post()
+  @ApiOperation({ summary: 'Get trip as frontend shape' })
   @ApiBody({
     type: CreateReviewDto, examples: reviewExamples})
   create(@Body() createReviewDto: CreateReviewDto) {
@@ -28,10 +30,12 @@ export class ReviewController {
     return this.reviewService.findOne(id);
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
-  //   return this.reviewService.update(id, updateReviewDto);
-  // }
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update Review ' })
+  @ApiBody({ type: UpdateReviewDto ,description:'Update Review DTO'})
+  update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
+    return this.reviewService.update(id, updateReviewDto);
+  }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
@@ -39,6 +43,7 @@ export class ReviewController {
   }
 
   @Post('upload/:reviewId')
+  @ApiOperation({ summary: 'Upload Review Images' })
   @UseInterceptors(FilesInterceptor('profileImg', 10))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -61,7 +66,7 @@ export class ReviewController {
   }
 
 
-  @Get('history/:userId/:serviceTypeOrLocation')
+  // @Get('history/:userId/:serviceTypeOrLocation')
   getReviewHistory(
     @Param('userId') userId: string,
     @Param('serviceTypeOrLocation') serviceTypeOrLocation: string,

@@ -87,4 +87,9 @@ export class UsersController {
     return this.usersService.findBookmarks(userId, type);
   }
 
+  @Get('review/:userId/:type')
+  findReviews(@Param('userId') userId: string, @Param('type') type: string) {
+    return this.usersService.findReviews(userId, type);
+  }
+
 }

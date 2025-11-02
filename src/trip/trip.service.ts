@@ -139,11 +139,11 @@ export class TripService {
     return trip;
   }
 
-  update(id: number, updateTripDto: UpdateTripDto) {
+  update(id: string, updateTripDto: UpdateTripDto) {
     return `This action updates a #${id} trip`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} trip`;
   }
 

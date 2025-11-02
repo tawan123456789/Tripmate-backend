@@ -33,12 +33,12 @@ export class TripController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTripDto: UpdateTripDto) {
-    return this.tripService.update(+id, updateTripDto);
+    return this.tripService.update(id, updateTripDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.tripService.remove(+id);
+    return this.tripService.remove(id);
   }
 
   @Post('frontend')

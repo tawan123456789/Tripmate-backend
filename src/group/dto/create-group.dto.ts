@@ -1,9 +1,31 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString } from 'class-validator';
+
 export class CreateGroupDto {
-    ownerId: string
+    @ApiProperty({ description: 'Owner user id' })
+    @IsString()
+    ownerId: string;
+
+    @ApiProperty({ description: 'Group name' })
+    @IsString()
     groupName: string;
-    groupImg?: string
-    description?: string
-    status?: string
+
+    // This field is handled as a file upload in the controller (multipart/form-data).
+    // Keep a string field for potential URL when creating programmatically.
+    @ApiPropertyOptional({ description: 'Group image URL (or upload as form file)', type: 'string', format: 'binary' })
+    @IsOptional()
+    @IsString()
+    groupImg?: string;
+
+    @ApiPropertyOptional({ description: 'Description' })
+    @IsOptional()
+    @IsString()
+    description?: string;
+
+    @ApiPropertyOptional({ description: 'Status' })
+    @IsOptional()
+    @IsString()
+    status?: string;
 }
 
 

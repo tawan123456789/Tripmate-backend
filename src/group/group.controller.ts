@@ -4,14 +4,30 @@ import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateExpenseGroupDto } from '../expense/dto/create-expense-group.dto';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiBody } from '@nestjs/swagger';
 import { UpdateGroupUserPaymentDto } from './dto/update-group-user-payment.dto';
+import { ApiOperation } from '@nestjs/swagger';
+import { ApiConsumes } from '@nestjs/swagger';
 @Controller('group')
 export class GroupController {
   constructor(private readonly groupService: GroupService) {}
 
   @Post()
   @UseInterceptors(FileInterceptor('groupImg'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        ownerId: { type: 'string' },
+        groupName: { type: 'string' },
+        groupImg: { type: 'string', format: 'binary' },
+        description: { type: 'string' },
+        status: { type: 'string' ,example:'active'},
+      },
+      required: ['ownerId', 'groupName']
+    }
+  })
   create(@Body() createGroupDto: CreateGroupDto,
     @UploadedFile() profileImg?: Express.Multer.File){
     return this.groupService.create(createGroupDto, profileImg);
@@ -58,6 +74,12 @@ export class GroupController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.groupService.remove(id);
+  }
+
+  @Get('/groupByuser/:membersId')
+  @ApiOperation({ summary: 'get groups by user' })
+  getGroupsByUser(@Param('membersId') membersId: string) {
+    return this.groupService.getGroupsByUser(membersId);
   }
 
   @Post('/expense-group/create')
