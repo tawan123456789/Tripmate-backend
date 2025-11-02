@@ -1,19 +1,19 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
-import { UpdateReviewDto } from './dto/update-review.dto';
+import { UpdateReviewDto ,reviewExamples} from './dto/update-review.dto';
 import { ApiBody } from '@nestjs/swagger';
 import { UseInterceptors } from '@nestjs/common/decorators';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes } from '@nestjs/swagger';
 import { UploadedFiles } from '@nestjs/common/decorators';
-
 @Controller('review')
 export class ReviewController {
-  constructor(private readonly reviewService: ReviewService) {}
+  constructor(private readonly reviewService: ReviewService) { }
 
   @Post()
-  @ApiBody({ type: CreateReviewDto })
+  @ApiBody({
+    type: CreateReviewDto, examples: reviewExamples})
   create(@Body() createReviewDto: CreateReviewDto) {
     return this.reviewService.create(createReviewDto);
   }
@@ -61,7 +61,12 @@ export class ReviewController {
   }
 
 
-
-
+  @Get('history/:userId/:serviceTypeOrLocation')
+  getReviewHistory(
+    @Param('userId') userId: string,
+    @Param('serviceTypeOrLocation') serviceTypeOrLocation: string,
+  ) {
+    return this.reviewService.getReviewHistory(userId, serviceTypeOrLocation);
+  }
 
 }
