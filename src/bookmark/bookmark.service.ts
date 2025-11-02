@@ -34,16 +34,6 @@ export class BookmarkService {
                                         },
                                 });
             }
-            else if(dto.status == "place"){
-                                return await this.prisma.bookmark.create({
-                                        data: {
-                                            tripId:null,
-                                            serviceId: dto.serviceId,
-                                            userId: dto.userId,
-                                            status: dto.status,
-                                        },
-                                });
-            }
 
             } catch (e) {
                 if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
