@@ -10,6 +10,7 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { start } from 'repl';
 import { Decimal } from '@prisma/client/runtime/library';
+import { Hotel } from 'src/hotel/entities/hotel.entity';
 
 
 
@@ -286,7 +287,7 @@ async ConfirmBooking(id: string) {
 }
 
   findAll() {
-    return this.prisma.booking.findMany({include : {}});
+    return this.prisma.booking.findMany({include : {service : {include : {hotel : {include : {rooms : true}}}}}});
   }
 
   async findOne(bid: string) {
