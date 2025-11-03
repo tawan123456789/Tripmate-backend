@@ -27,6 +27,11 @@ export class BookingController {
   getBookingByService(@Param('id') id:string){
     return this.bookingService.getBookingByService(id);
   }
+
+  @Get()
+  getBookingbyId(@Param('id') id: string){
+    return this.bookingService.findOne(id);
+  }
   
 
 
