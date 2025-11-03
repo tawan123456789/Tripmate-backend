@@ -7,6 +7,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { UploadedFiles } from '@nestjs/common/decorators';
 import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { JwtAuthGuard, JwtToken } from 'src/auth/guards/jwt-auth.guard';
+import { get } from 'http';
 
 @Controller('guide')
 export class GuideController {
@@ -61,4 +62,9 @@ export class GuideController {
     return this.guideService.uploadGuideImages(guideId, profileImgs);
   }
   
+  @Get('rating/:guideId')
+  rateGuide(@Param('guideId') guideId: string) {
+    return this.guideService.rateGuide(guideId);
+  }
+
 }

@@ -211,4 +211,38 @@ async findOne(id: string, req: any) {
 
   return updated;
 }
+
+async rateCar(carId: string) {
+    const reviews = await this.prisma.review.findMany({
+        where: {
+            serviceId: carId,
+            status: 'car'
+        }
+    });
+
+     if (reviews.length === 0) {
+        return 0;
+    }
+    const avgScore1 = reviews.reduce((sum, review) => sum + (review.score1 ?? 0), 0) / reviews.length;
+    const avgScore2 = reviews.reduce((sum, review) => sum + (review.score2 ?? 0), 0) / reviews.length;
+    const avgScore3 = reviews.reduce((sum, review) => sum + (review.score3 ?? 0), 0) / reviews.length;
+    const avgScore4 = reviews.reduce((sum, review) => sum + (review.score4 ?? 0), 0) / reviews.length;
+    const avgScore5 = reviews.reduce((sum, review) => sum + (review.score5 ?? 0), 0) / reviews.length;
+    const avgScore6 = reviews.reduce((sum, review) => sum + (review.score6 ?? 0), 0) / reviews.length;
+    const overallRating = (avgScore1 + avgScore2 + avgScore3 + avgScore4 + avgScore5 + avgScore6) / 6;
+    return{
+        id: carId,
+        overallRating: parseFloat(overallRating.toFixed(1)),
+        subtopicRatings: {
+            score1: parseFloat(avgScore1.toFixed(1)),
+            score2: parseFloat(avgScore2.toFixed(1)),
+            score3: parseFloat(avgScore3.toFixed(1)),
+            score4: parseFloat(avgScore4.toFixed(1)),
+            score5: parseFloat(avgScore5.toFixed(1)),
+            score6: parseFloat(avgScore6.toFixed(1)),
+        }
+    };
+  }   
+
+
 }
