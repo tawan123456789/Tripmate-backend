@@ -31,8 +31,13 @@ export class BookmarkController {
     return this.bookmarkService.update(id, updateBookmarkDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.bookmarkService.remove(id);
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.bookmarkService.remove(id);
+  // }
+
+  @Delete('/:userId/:serviceIdorPlaceId')
+  removeByUserAndServiceOrPlace(@Param('userId') userId: string, @Param('serviceIdorPlaceId') serviceIdorPlaceId: string) {
+    return this.bookmarkService.removeByUserAndServiceOrPlace(userId, serviceIdorPlaceId);
   }
 }

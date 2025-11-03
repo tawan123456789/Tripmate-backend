@@ -93,4 +93,19 @@ export class BookmarkService {
             throw e;
         }
     }
+
+    async removeByUserAndServiceOrPlace(userId: string, serviceIdorPlaceId: string) {
+        try {
+            await this.prisma.bookmark.deleteMany({ where: { userId: userId, OR: [{ serviceId: serviceIdorPlaceId }, { placeId: serviceIdorPlaceId }] } });
+            return { ok: true };
+        } catch (e) {
+            if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
+                throw new NotFoundException('bookmark not found');
+            }
+            throw e;
+        }
+    }
+
+
+
 }
