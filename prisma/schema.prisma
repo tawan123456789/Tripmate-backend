@@ -534,6 +534,7 @@ model Booking {
   updatedAt        DateTime?   @updatedAt @map("updated_at")
   status           String?
   price            Decimal?     @db.Decimal(10, 2)
+  
   group            Group       @relation(fields: [groupId], references: [id])
   service          UserService @relation(fields: [serviceId], references: [id])
 

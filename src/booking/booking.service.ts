@@ -291,7 +291,7 @@ async ConfirmBooking(id: string) {
   // }
 
   async findOne(bid: string) {
-      const location = await this.prisma.booking.findUnique({ where: { id : bid } });
+      const location = await this.prisma.booking.findUnique({ where: { id : bid },include : {service : true} });
           if (!location) throw new NotFoundException('Service not found');
           return location;
     }

@@ -28,7 +28,7 @@ export class BookingController {
     return this.bookingService.getBookingByService(id);
   }
 
-  @Get('getBookById/:id')
+  @Get('/:id')
   getBookingbyId(@Param('id') bid: string){
     return this.bookingService.findOne(bid);
   }
