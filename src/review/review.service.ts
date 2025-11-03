@@ -177,19 +177,21 @@ export class ReviewService {
             const total = ratingScores.reduce((sum, score) => sum + score, 0);
             averageRating = total / ratingScores.length;
         }
-        const updatedReview = this.prisma.review.update({
-            where: { id },
-            data: {
-                comment: updateReviewDto.comment,
-                score1: updateReviewDto.score1,
-                score2: updateReviewDto.score2,
-                score3: updateReviewDto.score3,
-                score4: updateReviewDto.score4,
-                score5: updateReviewDto.score5,
-                score6: updateReviewDto.score6,
-                rating: averageRating,
-            },
-        });
+        // Build update data conditionally to avoid overwriting fields with undefined
+        const data: any = {};
+        if (updateReviewDto.comment !== undefined) data.comment = updateReviewDto.comment;
+        if (updateReviewDto.score1 !== undefined) data.score1 = updateReviewDto.score1;
+        if (updateReviewDto.score2 !== undefined) data.score2 = updateReviewDto.score2;
+        if (updateReviewDto.score3 !== undefined) data.score3 = updateReviewDto.score3;
+        if (updateReviewDto.score4 !== undefined) data.score4 = updateReviewDto.score4;
+        if (updateReviewDto.score5 !== undefined) data.score5 = updateReviewDto.score5;
+        if (updateReviewDto.score6 !== undefined) data.score6 = updateReviewDto.score6;
+        // set computed rating if any score provided
+        if (ratingScores.length > 0) data.rating = averageRating;
+        // only set image array if explicitly provided in payload (not when uploading files via separate endpoint)
+        if (updateReviewDto.image !== undefined) data.image = updateReviewDto.image;
+
+        const updatedReview = this.prisma.review.update({ where: { id }, data });
         return updatedReview;
     }
 }
