@@ -15,7 +15,8 @@ export class UpdateReviewDto  {
 
     @ApiPropertyOptional()
     @IsString()
-    userId: string;
+    @IsOptional()
+    userId?: string;
 
     @ApiPropertyOptional()
     @IsString()
