@@ -23,6 +23,13 @@ export class BookingController {
     return this.bookingService.ConfirmBooking(id);
   }
 
+  @Get('getByService/:id')
+  getBookingByService(@Param('id') id:string){
+    return this.bookingService.getBookingByService(id);
+  }
+  
+
+
   // @Post()
   // create(@Body() createBookingDto: CreateBookingDto) {
   //   return this.bookingService.create(createBookingDto);

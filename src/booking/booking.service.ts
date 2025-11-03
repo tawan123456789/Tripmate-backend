@@ -295,7 +295,7 @@ async ConfirmBooking(id: string) {
           return location;
     }
 
-  async getBookingByService(service_id){
+  async getBookingByService(service_id : string){
     return this.prisma.booking.findMany({where : {serviceId : service_id}})
   }
 
