@@ -18,6 +18,11 @@ export class BookingController {
     return this.bookingService.cancelBooking(id);
   }
 
+  @Patch('cancel/:id')
+  confirm(@Param('id') id: string) {
+    return this.bookingService.ConfirmBooking(id);
+  }
+
   // @Post()
   // create(@Body() createBookingDto: CreateBookingDto) {
   //   return this.bookingService.create(createBookingDto);

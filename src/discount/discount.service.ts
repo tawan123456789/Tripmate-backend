@@ -30,7 +30,7 @@ export class DiscountService {
          }
 
   findAll() {
-    return `This action returns all discount`;
+    return this.prisma.discount.findMany();
   }
 
   async findOne(id: string) {

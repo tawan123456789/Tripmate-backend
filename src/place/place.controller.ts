@@ -2,10 +2,11 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { PlaceService } from './place.service';
 import { CreatePlaceDto } from './dto/create-place.dto';
 import { UpdatePlaceDto } from './dto/update-place.dto';
-import { UseInterceptors } from '@nestjs/common/decorators';
+import { UseGuards, UseInterceptors } from '@nestjs/common/decorators';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { UploadedFiles } from '@nestjs/common/decorators';
 import { ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { Req } from '@nestjs/common/decorators';
 
 @Controller('place')
 export class PlaceController {
@@ -17,13 +18,14 @@ export class PlaceController {
   }
 
   @Get()
-  findAll() {
-    return this.placeService.findAll();
+  @UseGuards()
+  findAll(@Req() req : any) {
+    return this.placeService.findAll(req);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.placeService.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    return this.placeService.findOne(id,req);
   }
 
   @Patch(':id')

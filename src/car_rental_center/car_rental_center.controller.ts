@@ -4,9 +4,11 @@ import { CreateCarRentalCenterDto } from './dto/create-car_rental_center.dto';
 import { UpdateCarRentalCenterDto } from './dto/update-car_rental_center.dto';
 import { CreateCarDto } from 'src/car/dto/create-car.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UseInterceptors, UploadedFile, Req } from '@nestjs/common/decorators';
+import { UseInterceptors, UploadedFile, Req, UseGuards } from '@nestjs/common/decorators';
 import { ApiBody, ApiConsumes,ApiProperty } from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { UserJoinGroup } from 'src/user_join_group/entities/user_join_group.entity';
+import { JwtToken } from 'src/auth/guards/jwt-auth.guard';
 @Controller('car-rental-center')
 export class CarRentalCenterController {
   constructor(private readonly carRentalCenterService: CarRentalCenterService) {}
@@ -17,12 +19,14 @@ export class CarRentalCenterController {
   }
 
   @Get()
+  @UseGuards(JwtToken)
   findAll(@Req() req: any) {
     return this.carRentalCenterService.findAll(req);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string,@Req() req: any) {
+  @UseGuards(JwtToken)
+  findOne(@Param('id') id: string,@Req() req: any) {  
     return this.carRentalCenterService.findOne(id, req);
   }
 
