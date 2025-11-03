@@ -68,6 +68,6 @@ export class CreatePlaceDto {
   @IsString()
   status?: string;
 
-    @IsLatitude() lat: string;
-    @IsLongitude() long: string;
+  @IsLatitude() lat: string;
+  @IsLongitude() long: string;
 }
