@@ -79,7 +79,10 @@ uploadCarImages(
 
 
 
-
+@Get('rating/:carId')
+rateCar(@Param('carId') carId: string) {
+  return this.carRentalCenterService.rateCar(carId);
+}
 
 
 

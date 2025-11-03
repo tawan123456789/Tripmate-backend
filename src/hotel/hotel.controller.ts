@@ -68,4 +68,9 @@ export class HotelController {
     return this.hotelService.uploadHotelImages(hotelId, profileImgs);
   }
 
+  @Get('rating/:hotelId')
+  rateHotel(@Param('hotelId') hotelId: string) {
+    return this.hotelService.rateHotel(hotelId);
+  }
+
 }
