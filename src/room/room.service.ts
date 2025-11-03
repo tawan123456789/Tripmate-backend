@@ -35,11 +35,11 @@ export class RoomService {
       }
 
   findAll() {
-    return `This action returns all room`;
+    return this.prisma.room.findMany();
   }
 
   async findOne(id: string, hotel_id: string) {
-      const location = await this.prisma.room.findUnique({ where: { id_hotelId: {id: id ,hotelId: hotel_id} } });
+      const location = await this.prisma.room.findUnique({ where: { id_hotelId: {id: id ,hotelId: hotel_id} },include:{options: true} });
           if (!location) throw new NotFoundException('Room not found');
           return location;
     }
