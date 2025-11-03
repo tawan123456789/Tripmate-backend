@@ -142,6 +142,10 @@ async findOne(id: string, req: any) {
     }
   }
 
+  async getAllCar(id : string){
+    return await this.prisma.car.findMany({where: {crcId : id}})
+  }
+
   async uploadCarImages(carId: string, profileImgs: Express.Multer.File[]) {
     const car = await this.prisma.carRentalCenter.findUnique({ where: { id: carId } });
     if (!car) {
