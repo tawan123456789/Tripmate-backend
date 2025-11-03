@@ -286,9 +286,9 @@ async ConfirmBooking(id: string) {
   });
 }
 
-  async findAll() {
-    return this.prisma.booking.findMany({include : {service : {include : {hotel : {include : {rooms : true}}}}}});
-  }
+  // async findAll() {
+  //   return this.prisma.booking.findMany({include : {service : {include : {hotel : {include : {rooms : true}}}}}});
+  // }
 
   async findOne(bid: string) {
       const location = await this.prisma.booking.findUnique({ where: { id : bid } });
