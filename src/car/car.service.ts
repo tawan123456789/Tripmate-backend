@@ -60,20 +60,20 @@ export class CarService {
     return this.prisma.car.findMany();
   }
 
-  async findOne(id: string) {
-      const location = await this.prisma.car.findUnique({ where: { id } });
+  async findOne(cid: string) {
+      const location = await this.prisma.car.findUnique({ where: { id : cid} });
           if (!location) throw new NotFoundException('Service not found');
           return location;
     }
   
-    async update(id: string, dto: UpdateCarDto) {
-      const existing = await this.prisma.car.findUnique({ where: { id } });
+    async update(cid: string, dto: UpdateCarDto) {
+      const existing = await this.prisma.car.findUnique({ where: { id : cid } });
           if (!existing) {
               throw new NotFoundException('Car not found');
           }
 
   return this.prisma.car.update({
-    where: { id },
+    where: { id : cid },
     data: {
           // id: dto.id, // ถ้าจำเป็นต้องเปลี่ยนจริง ๆ ค่อยเปิดบรรทัดนี้
     name: dto.name,
