@@ -18,7 +18,7 @@ export class BookingController {
     return this.bookingService.cancelBooking(id);
   }
 
-  @Patch('cancel/:id')
+  @Patch('confirm/:id')
   confirm(@Param('id') id: string) {
     return this.bookingService.ConfirmBooking(id);
   }
