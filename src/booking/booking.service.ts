@@ -70,6 +70,11 @@ private servicePrice = async (
       } else if (discount.type === 'fixed_amount') {
         price = price - discount.value.toNumber();
       }
+      if (price < 0) price = 0;
+      await this.prisma.discount.update({
+        where: { id: discount.id },
+        data: { status: 'used' },
+      });
     }
 
     return price;

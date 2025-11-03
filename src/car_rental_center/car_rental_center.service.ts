@@ -100,7 +100,7 @@ export class CarRentalCenterService {
 
   findAll(req: any) {
     if(req.user.id){return this.prisma.carRentalCenter.findMany({include: { cars: true, service: {include: { reviews: true,location: true, bookmarks: {where : { userId: req.user.id} } } } }});}
-    return this.prisma.carRentalCenter.findMany({include: { cars: true, service: {include: { reviews: true,location: true } } }});
+    return this.prisma.carRentalCenter.findMany({include: { cars: true, service: {include: { reviews: true,location: true} } }});
   }
 
 async findOne(id: string, req: any) {
