@@ -33,7 +33,30 @@ export class ReviewController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update Review ' })
   @ApiBody({ type: UpdateReviewDto ,description:'Update Review DTO'})
-  update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        userId: { type: 'string' },
+        placeId: { type: 'string' },
+        serviceId: { type: 'string' },
+        comment: { type: 'string' },
+        score1: { type: 'number' },
+        score2: { type: 'number' },
+        score3: { type: 'number' },
+        score4: { type: 'number' },
+        score5: { type: 'number' },
+        score6: { type: 'number' },
+        status: { type: 'string' },
+        image: { type: 'array', items: { type: 'string', format: 'binary' } },
+      },
+    },
+  })
+  async update(
+    @Param('id') id: string,
+    @Body() updateReviewDto: UpdateReviewDto,
+  ) {
+    console.log('UpdateReviewDto received in controller:', updateReviewDto.image);
     return this.reviewService.update(id, updateReviewDto);
   }
 

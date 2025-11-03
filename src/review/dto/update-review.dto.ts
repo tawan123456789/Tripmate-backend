@@ -1,7 +1,68 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateReviewDto } from './create-review.dto';
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { IsArray, IsNumber, IsOptional, IsString } from "class-validator";
+export class UpdateReviewDto  {
+    @ApiPropertyOptional()
+    @IsString()
+    @IsOptional()
+    serviceId?: string;
 
-export class UpdateReviewDto extends PartialType(CreateReviewDto) {}
+    @ApiPropertyOptional()
+    @IsString()
+    @IsOptional()
+    placeId?: string;
+
+    @ApiPropertyOptional()
+    @IsString()
+    userId: string;
+
+    @ApiPropertyOptional()
+    @IsString()
+    @IsOptional()
+    comment?: string;
+
+    @ApiPropertyOptional()
+    @IsNumber()
+    @IsOptional()
+    score1?: number;
+
+    @ApiPropertyOptional()
+    @IsNumber()
+    @IsOptional()
+    score2?: number;
+
+    @ApiPropertyOptional()
+    @IsNumber()
+    @IsOptional()
+    score3?: number;
+
+    @ApiPropertyOptional()
+    @IsNumber()
+    @IsOptional()
+    score4?: number;
+
+    @ApiPropertyOptional()
+    @IsNumber()
+    @IsOptional()
+    score5?: number;
+
+    @ApiPropertyOptional()
+    @IsNumber()
+    @IsOptional()
+    score6?: number;
+
+    @ApiPropertyOptional()
+    @IsString()
+    @IsOptional()
+    status?: string;
+ 
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsArray()
+    image?: string[];
+   
+}
 
 
 const reviewExamples = {
