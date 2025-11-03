@@ -24,7 +24,7 @@ private servicePrice = async (
     subServiceId?: string,
     optionId?: string,
     discountId?: string,
-  ): Promise<number> => {
+  ): Promise<[ price: number, discountPrice: number ]> => {
     let price = 0;
     const service = await this.prisma.userService.findUnique({ where: { id: serviceId } });
     const discount = discountId ? await this.prisma.discount.findUnique({ where: { id: discountId } }) : null;
@@ -63,13 +63,18 @@ private servicePrice = async (
       const diffDays = Math.floor((endDateOnly.getTime() - startDateOnly.getTime()) / (1000 * 60 * 60 * 24));
       price = rate * diffDays;
     }
-
+    var discountPrice = 0;
     if (discount && discount.type && discount.value) {
       if (discount.type === 'percentage') {
-        price = price * (1 - discount.value.toNumber() / 100);
-      } else if (discount.type === 'fixed_amount') {
+        discountPrice = price * discount.value.toNumber() / 100
+        price = price - discountPrice
+       
+      } 
+      else if (discount.type === 'fix') {
         price = price - discount.value.toNumber();
+        discountPrice = discount.value.toNumber();
       }
+
       if (price < 0) price = 0;
       await this.prisma.discount.update({
         where: { id: discount.id },
@@ -77,7 +82,7 @@ private servicePrice = async (
       });
     }
 
-    return price;
+    return [price, discountPrice];
   };
 
 
@@ -134,7 +139,14 @@ private servicePrice = async (
       if (service.type !== 'guide') baseWhere.subServiceId = dto.subServiceId;
       const overlapping = await this.prisma.booking.findFirst({ where: baseWhere });
       if (overlapping) throw new ConflictException('Service or sub-service already booked for the selected date range');
-
+      const [calPrice, discountPrice] = await this.servicePrice(
+            dto.serviceId,
+            dto.startBookingDate,
+            dto.endBookingDate,
+            dto.subServiceId,
+            dto.optionId,     // ✅ optionId มาก่อน
+            dto.discountId,   // ✅ discountId มาทีหลัง
+          )
       // 4) สร้าง booking (⛔️ ไม่สร้าง transactions ที่นี่แล้ว)
       const booking = await this.prisma.booking.create({
         data: {
@@ -145,21 +157,14 @@ private servicePrice = async (
           startBookingDate: dto.startBookingDate,
           endBookingDate: dto.endBookingDate,
           note: dto.note,
-          price: await this.servicePrice(
-            dto.serviceId,
-            dto.startBookingDate,
-            dto.endBookingDate,
-            dto.subServiceId,
-            dto.optionId,     // ✅ optionId มาก่อน
-            dto.discountId,   // ✅ discountId มาทีหลัง
-          ),
+          price: calPrice,
           status: 'booked',
         },
         include: { service: true, group: true },
       });
 
       // ⛔️ ย้ายการสร้าง transactions ไป ConfirmBooking
-      return { booking };
+      return { booking, discountPrice , calPrice};
     } catch (e: any) {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2003') {
         throw new BadRequestException('Invalid foreign key (serviceId/groupId not found)');
@@ -289,5 +294,9 @@ async ConfirmBooking(id: string) {
           if (!location) throw new NotFoundException('Service not found');
           return location;
     }
+
+  async getBookingByService(service_id){
+    return this.prisma.booking.findMany({where : {serviceId : service_id}})
+  }
 
 }
