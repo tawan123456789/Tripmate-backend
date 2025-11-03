@@ -64,6 +64,7 @@ export class PlaceService {
       throw e;
     }
   }
+  
   findAll(req : any) {
     if(req.user.id){return this.prisma.place.findMany({include : {location:true,reviews:true,bookmark : {where : { userId: req.query.userId }}}});}
     return this.prisma.place.findMany({include : {location:true,reviews:true}});

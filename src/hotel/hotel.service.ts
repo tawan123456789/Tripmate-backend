@@ -136,8 +136,10 @@ export class HotelService {
         return location;}
     else{const location = await this.prisma.hotel.findUnique({ where: { id }, include: { rooms: { include: { options: true } }, service: { include: { reviews: true ,location: true} } } }); if (!location) throw new NotFoundException('Hotel not found');
         return location;}
-    
-      
+  }
+
+  async getAllRoom(id:string){
+    return this.prisma.room.findMany({where : {hotelId : id}})
   }
 
 

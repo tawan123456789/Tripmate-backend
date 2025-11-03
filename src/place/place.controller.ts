@@ -7,6 +7,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { UploadedFiles } from '@nestjs/common/decorators';
 import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { Req } from '@nestjs/common/decorators';
+import { JwtToken } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('place')
 export class PlaceController {
@@ -18,12 +19,13 @@ export class PlaceController {
   }
 
   @Get()
-  @UseGuards()
+  @UseGuards(JwtToken)
   findAll(@Req() req : any) {
     return this.placeService.findAll(req);
   }
 
   @Get(':id')
+  @UseGuards(JwtToken)
   findOne(@Param('id') id: string, @Req() req: any) {
     return this.placeService.findOne(id,req);
   }
