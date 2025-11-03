@@ -286,12 +286,12 @@ async ConfirmBooking(id: string) {
   });
 }
 
-  findAll() {
+  async findAll() {
     return this.prisma.booking.findMany({include : {service : {include : {hotel : {include : {rooms : true}}}}}});
   }
 
   async findOne(bid: string) {
-      const location = await this.prisma.car.findUnique({ where: { id: bid } });
+      const location = await this.prisma.booking.findUnique({ where: { id : bid } });
           if (!location) throw new NotFoundException('Service not found');
           return location;
     }
